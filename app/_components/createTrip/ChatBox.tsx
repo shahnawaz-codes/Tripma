@@ -24,7 +24,7 @@ export const ChatBox = () => {
     },
   ]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [isFinal, seIsFinal] = useState(false);
+
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -44,7 +44,6 @@ export const ChatBox = () => {
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg.ui === "final") {
-      seIsFinal(true);
       generateFinalTripPlan();
     }
   }, [messages]);
@@ -163,11 +162,6 @@ export const ChatBox = () => {
         { label: "Relaxed", icon: "🐢", desc: "Take it easy" },
       ]);
     } else if (ui === "final") {
-    
-      
-      
-    
-      /
       return (
         <div className="mt-4 p-5 border border-primary/20 bg-primary/5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center w-full sm:w-[80%] lg:w-[300px]">
           <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-1">
@@ -175,7 +169,7 @@ export const ChatBox = () => {
           </div>
           <div>
             <h3 className="font-semibold text-gray-800 text-sm">
-             
+              {/* TODO: Change this text to "Your trip plan is ready!" when generation is complete */}
               {isGeneratingPlan
                 ? "Your trip plan is generating...."
                 : "Your trip plan is ready!"}
