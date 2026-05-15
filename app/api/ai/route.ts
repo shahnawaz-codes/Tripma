@@ -62,7 +62,85 @@ JSON format:
   "resp": "AI response message here",
   "ui": "source/destination/groupSize/budget/tripDuration/interests/preferences/final"
 }`;
+const FINAL_PROMPT = `
+Generate Travel Plan with given details.
 
+Give me:
+- Hotel options list with:
+  - Hotel Name
+  - Hotel Address
+  - Price
+  - Hotel Image URL
+  - Geo Coordinates
+  - Rating
+  - Description
+
+Also suggest itinerary with:
+- Place Name
+- Place Details
+- Place Image URL
+- Geo Coordinates
+- Place Address
+- Ticket Pricing
+- Travel Time for each location
+- Best time to visit
+
+Return everything in JSON format.
+
+Output Schema:
+{
+  "trip_plan": {
+    "destination": "string",
+    "duration": "string",
+    "origin": "string",
+    "budget": "string",
+    "group_size": "string",
+
+    "hotels": [
+      {
+        "hotel_name": "string",
+        "hotel_address": "string",
+        "price_per_night": "string",
+        "hotel_image_url": "string",
+
+        "geo_coordinates": {
+          "latitude": number,
+          "longitude": number
+        },
+
+        "rating": number,
+        "description": "string"
+      }
+    ],
+
+    "itinerary": [
+      {
+        "day": number,
+        "day_plan": "string",
+        "best_time_to_visit_day": "string",
+
+        "activities": [
+          {
+            "place_name": "string",
+            "place_details": "string",
+            "place_image_url": "string",
+
+            "geo_coordinates": {
+              "latitude": number,
+              "longitude": number
+            },
+
+            "place_address": "string",
+            "ticket_pricing": "string",
+            "time_travel_each_location": "string",
+            "best_time_to_visit": "string"
+          }
+        ]
+      }
+    ]
+  }
+}
+`;
 // make a post req
 export async function POST(req: Request) {
   try {

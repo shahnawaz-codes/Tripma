@@ -14,8 +14,6 @@ type Message = {
   ui?: string;
 };
 
-
-
 export const ChatBox = () => {
   const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([
@@ -25,14 +23,15 @@ export const ChatBox = () => {
         "Hi there! I'm your AI travel assistant. Let's plan an amazing trip together. Where would you like to go?",
     },
   ]);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  ///------ auto scroll feat
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       scrollToBottom();
@@ -40,6 +39,9 @@ export const ChatBox = () => {
     return () => clearTimeout(timeoutId);
   }, [messages]);
 
+//---------Generate plan:
+
+  // call ai endpoint
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
     // store user ques with role
@@ -54,9 +56,10 @@ export const ChatBox = () => {
     try {
       setIsLoading(true);
       const res = await axios.post("/api/ai", { message: newMessages });
+      const { resp, ui } = res.data;
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: res.data.resp, ui: res.data.ui },
+        { role: "assistant", content: resp, ui: ui },
       ]);
     } catch (error: any) {
       console.error("Failed to send message:", error);
@@ -69,13 +72,12 @@ export const ChatBox = () => {
     }
   };
 
-  const handleSend = async () => {
-    sendMessage(userInput);
-  };
   const renderGenerativeUi = (ui: string) => {
     if (!ui) return null;
 
-    const renderOptions = (options: {label: string, icon: string, desc?: string}[]) => (
+    const renderOptions = (
+      options: { label: string; icon: string; desc?: string }[],
+    ) => (
       <div className="grid grid-cols-2 gap-2 mt-3 w-full sm:w-[80%] lg:w-[300px]">
         {options.map((opt) => (
           <Button
@@ -86,39 +88,44 @@ export const ChatBox = () => {
             disabled={isLoading}
           >
             <span className="text-2xl mb-0.5">{opt.icon}</span>
-            <span className="font-semibold text-gray-700 whitespace-normal text-center leading-tight">{opt.label}</span>
-            {opt.desc && <span className="text-[10px] text-gray-400 font-normal mt-0">{opt.desc}</span>}
+            <span className="font-semibold text-gray-700 whitespace-normal text-center leading-tight">
+              {opt.label}
+            </span>
+            {opt.desc && (
+              <span className="text-[10px] text-gray-400 font-normal mt-0">
+                {opt.desc}
+              </span>
+            )}
           </Button>
         ))}
       </div>
     );
-
     if (ui === "source") {
       return renderOptions([
         { label: "New York", icon: "🗽" },
         { label: "London", icon: "💂" },
         { label: "Tokyo", icon: "🗼" },
-        { label: "Paris", icon: "🥐" }
+        { label: "Paris", icon: "🥐" },
       ]);
     } else if (ui === "destination") {
       return renderOptions([
         { label: "Maldives", icon: "🏖️" },
         { label: "Swiss Alps", icon: "🏔️" },
         { label: "Kyoto", icon: "⛩️" },
-        { label: "Bali", icon: "🌴" }
+        { label: "Bali", icon: "🌴" },
       ]);
     } else if (ui === "budget") {
       return renderOptions([
         { label: "Budget", icon: "🎒", desc: "Backpacking" },
         { label: "Moderate", icon: "🏨", desc: "Comfort" },
-        { label: "Luxury", icon: "💎", desc: "Premium" }
+        { label: "Luxury", icon: "💎", desc: "Premium" },
       ]);
     } else if (ui === "groupSize") {
       return renderOptions([
         { label: "Solo", icon: "👤", desc: "Just me" },
         { label: "Couple", icon: "💑", desc: "Romantic" },
         { label: "Family", icon: "👨‍👩‍👧‍👦", desc: "With kids" },
-        { label: "Friends", icon: "👯", desc: "Group trip" }
+        { label: "Friends", icon: "👯", desc: "Group trip" },
       ]);
     } else if (ui === "tripDuration") {
       return <DurationSelector onSelect={sendMessage} disabled={isLoading} />;
@@ -127,24 +134,46 @@ export const ChatBox = () => {
         { label: "Nature", icon: "🌲" },
         { label: "Culture", icon: "🏛️" },
         { label: "Food", icon: "🍜" },
-        { label: "Relaxation", icon: "🏖️" }
+        { label: "Relaxation", icon: "🏖️" },
       ]);
     } else if (ui === "preferences") {
       return renderOptions([
         { label: "Fast Paced", icon: "🏃", desc: "See it all" },
-        { label: "Relaxed", icon: "🐢", desc: "Take it easy" }
+        { label: "Relaxed", icon: "🐢", desc: "Take it easy" },
       ]);
     } else if (ui === "final") {
+      // TODO: Logic for handling the final trip generation:
+      // 1. When this 'final' UI is shown, you should automatically trigger the final LLM call to generate the detailed trip plan in the background.
+      //    (You can use a useEffect that watches for `messages` and triggers if the last message has `ui === "final"`)
+      // 2. Create a state variable like `const [isGeneratingPlan, setIsGeneratingPlan] = useState(false)` to track the loading state.
+      // 3. Update the UI text based on the state: If generating -> "Your trip plan is generating...", If done -> "Your trip plan is ready!"
+      // 4. Disable the "View Trip Plan" button while `isGeneratingPlan` is true.
       return (
         <div className="mt-4 p-5 border border-primary/20 bg-primary/5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center w-full sm:w-[80%] lg:w-[300px]">
           <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-1">
             <Sparkles className="w-6 h-6 text-primary animate-pulse" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800 text-sm">Your trip plan is generating!</h3>
-            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">Please wait a moment while we craft your perfect itinerary.</p>
+            <h3 className="font-semibold text-gray-800 text-sm">
+              {/* TODO: Change this text to "Your trip plan is ready!" when generation is complete */}
+              Your trip plan is generating....
+            </h3>
+            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+              Please wait a moment while we craft your perfect itinerary.
+            </p>
           </div>
-          <Button className="w-full mt-3 rounded-xl shadow-sm" disabled={isLoading}>
+          <Button
+            className="w-full mt-3 rounded-xl shadow-sm"
+            // TODO: disabled={isGeneratingPlan} // uncomment this once you add the state
+            onClick={() => {
+              // TODO: Implement the logic for when the user clicks "View Trip Plan"
+              // 1. Typically, you will save the generated plan to your database and get a trip ID.
+              // 2. Use next/navigation router to redirect: router.push(`/trip/${tripId}`)
+              console.log(
+                "View Trip Plan clicked! Redirecting to trip page...",
+              );
+            }}
+          >
             View Trip Plan
           </Button>
         </div>
@@ -183,7 +212,6 @@ export const ChatBox = () => {
                   className="rounded-full "
                   src={user?.imageUrl}
                   alt="profile"
-               
                 />
               </div>
             </div>
@@ -230,14 +258,14 @@ export const ChatBox = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                handleSend();
+                sendMessage(userInput);
               }
             }}
           />
           <div className="absolute bottom-2 right-2">
             <Button
               className="rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-md hover:shadow-lg transition-all group bg-primary"
-              onClick={handleSend}
+              onClick={() => sendMessage(userInput)}
             >
               <Send className="w-4 h-4 text-primary-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Button>
