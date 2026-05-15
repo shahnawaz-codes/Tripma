@@ -24,6 +24,7 @@ export const ChatBox = () => {
     },
   ]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [isFinal, seIsFinal] = useState(false);
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -39,8 +40,14 @@ export const ChatBox = () => {
     return () => clearTimeout(timeoutId);
   }, [messages]);
 
-//---------Generate plan:
-
+  //---------Generate plan:
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.ui === "final") {
+      seIsFinal(true);
+      generateFinalTripPlan();
+    }
+  }, [messages]);
   // call ai endpoint
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
@@ -55,7 +62,9 @@ export const ChatBox = () => {
     setUserInput("");
     try {
       setIsLoading(true);
-      const res = await axios.post("/api/ai", { message: newMessages });
+      const res = await axios.post("/api/generate-plan", {
+        message: newMessages,
+      });
       const { resp, ui } = res.data;
       setMessages((prev) => [
         ...prev,
@@ -71,7 +80,19 @@ export const ChatBox = () => {
       setIsLoading(false);
     }
   };
-
+  const generateFinalTripPlan = async () => {
+    try {
+      setIsGeneratingPlan(true);
+      const res = await axios.post("/api/generate-trip", {
+        message: messages,
+      });
+      console.log(res.data);
+    } catch (error) {
+      console.log("something wrong while generating trip", error);
+    } finally {
+      setIsGeneratingPlan(false);
+    }
+  };
   const renderGenerativeUi = (ui: string) => {
     if (!ui) return null;
 
@@ -142,12 +163,11 @@ export const ChatBox = () => {
         { label: "Relaxed", icon: "🐢", desc: "Take it easy" },
       ]);
     } else if (ui === "final") {
-      // TODO: Logic for handling the final trip generation:
-      // 1. When this 'final' UI is shown, you should automatically trigger the final LLM call to generate the detailed trip plan in the background.
-      //    (You can use a useEffect that watches for `messages` and triggers if the last message has `ui === "final"`)
-      // 2. Create a state variable like `const [isGeneratingPlan, setIsGeneratingPlan] = useState(false)` to track the loading state.
-      // 3. Update the UI text based on the state: If generating -> "Your trip plan is generating...", If done -> "Your trip plan is ready!"
-      // 4. Disable the "View Trip Plan" button while `isGeneratingPlan` is true.
+    
+      
+      
+    
+      /
       return (
         <div className="mt-4 p-5 border border-primary/20 bg-primary/5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center w-full sm:w-[80%] lg:w-[300px]">
           <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-1">
@@ -155,8 +175,10 @@ export const ChatBox = () => {
           </div>
           <div>
             <h3 className="font-semibold text-gray-800 text-sm">
-              {/* TODO: Change this text to "Your trip plan is ready!" when generation is complete */}
-              Your trip plan is generating....
+             
+              {isGeneratingPlan
+                ? "Your trip plan is generating...."
+                : "Your trip plan is ready!"}
             </h3>
             <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
               Please wait a moment while we craft your perfect itinerary.
@@ -164,7 +186,7 @@ export const ChatBox = () => {
           </div>
           <Button
             className="w-full mt-3 rounded-xl shadow-sm"
-            // TODO: disabled={isGeneratingPlan} // uncomment this once you add the state
+            disabled={isGeneratingPlan}
             onClick={() => {
               // TODO: Implement the logic for when the user clicks "View Trip Plan"
               // 1. Typically, you will save the generated plan to your database and get a trip ID.
