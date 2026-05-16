@@ -7,15 +7,30 @@ import axios from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@clerk/nextjs";
 import { DurationSelector } from "./DurationSelector";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
 
 type Message = {
   role: string;
   content: string;
   ui?: string;
 };
-
+type TripPlan = {
+  destination: string;
+  duration: string;
+  origin: string;
+  budget: string;
+  group_size: string;
+  hotels: object;
+  itinerary: object;
+};
 export const ChatBox = () => {
   const { user } = useUser();
+  const router = useRouter();
+  const saveTripMutation = useMutation(api.trips.saveNewTrip);
+  const [isSaveTrip, setIsSaveTrip] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -24,7 +39,7 @@ export const ChatBox = () => {
     },
   ]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-
+  const [finalTrip, setFinalTrip] = useState<TripPlan>();
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,7 +55,7 @@ export const ChatBox = () => {
     return () => clearTimeout(timeoutId);
   }, [messages]);
 
-  //---------Generate plan:
+  //---------Generate plan: call() trigger when msgs have final ui
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg.ui === "final") {
@@ -86,12 +101,32 @@ export const ChatBox = () => {
         message: messages,
       });
       console.log(res.data);
+      if (res.status == 200) {
+        console.log(res.data);
+        const tripData = res?.data?.trip_plan || res?.data;
+        setFinalTrip(tripData);
+      }
     } catch (error) {
       console.log("something wrong while generating trip", error);
     } finally {
       setIsGeneratingPlan(false);
     }
   };
+  const saveGeneratedTripPlan = async () => {
+    try {
+      setIsSaveTrip(true);
+      const tripId = await saveTripMutation({
+        tripPlan: finalTrip,
+        userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
+      });
+      router.push(`/trips/${tripId}`);
+    } catch (error) {
+      console.log("something wrong while saving trip", error);
+    } finally {
+      setIsSaveTrip(false);
+    }
+  };
+
   const renderGenerativeUi = (ui: string) => {
     if (!ui) return null;
 
@@ -136,7 +171,7 @@ export const ChatBox = () => {
       ]);
     } else if (ui === "budget") {
       return renderOptions([
-        { label: "Budget", icon: "🎒", desc: "Backpacking" },
+        { label: "Low", icon: "🎒", desc: "Backpacking" },
         { label: "Moderate", icon: "🏨", desc: "Comfort" },
         { label: "Luxury", icon: "💎", desc: "Premium" },
       ]);
@@ -181,16 +216,10 @@ export const ChatBox = () => {
           <Button
             className="w-full mt-3 rounded-xl shadow-sm"
             disabled={isGeneratingPlan}
-            onClick={() => {
-              // TODO: Implement the logic for when the user clicks "View Trip Plan"
-              // 1. Typically, you will save the generated plan to your database and get a trip ID.
-              // 2. Use next/navigation router to redirect: router.push(`/trip/${tripId}`)
-              console.log(
-                "View Trip Plan clicked! Redirecting to trip page...",
-              );
-            }}
+            onClick={saveGeneratedTripPlan}
           >
-            View Trip Plan
+            Save & View Trip Plan{" "}
+            {isSaveTrip && <Spinner className="size-5 text-white" />}
           </Button>
         </div>
       );

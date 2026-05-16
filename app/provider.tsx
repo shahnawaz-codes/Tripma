@@ -13,18 +13,19 @@ export default function Provider({
   const { user, isLoaded } = useUser();
   const mutate = useMutation(api.users.createUser);
 
-  useEffect(() => {
-    user && storeUser();
-  }, [user]);
   // we store user data if exist
-  const storeUser = async () => {
+  const storeUser = React.useCallback(async () => {
     if (!user && isLoaded) return;
     await mutate({
       email: user?.primaryEmailAddress?.emailAddress ?? "",
       name: user?.fullName ?? "",
       imgUrl: user?.imageUrl ?? "",
     });
-  };
+  }, [user, isLoaded, mutate]);
+
+  useEffect(() => {
+    user && storeUser();
+  }, [user, storeUser]);
  
   if (!isLoaded) {
     return (
