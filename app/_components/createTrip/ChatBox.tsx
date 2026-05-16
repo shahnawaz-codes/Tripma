@@ -1,16 +1,15 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, Minus, Plus, Sparkles } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUser } from "@clerk/nextjs";
-import { DurationSelector } from "./DurationSelector";
-import { useMutation } from "convex/react";
+import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
-import { Spinner } from "@/components/ui/spinner";
+import { useUser } from "@clerk/nextjs";
+import axios from "axios";
+import { useMutation } from "convex/react";
+import { Bot, Send, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { DurationSelector } from "./DurationSelector";
 
 type Message = {
   role: string;
@@ -30,7 +29,7 @@ export const ChatBox = () => {
   const { user } = useUser();
   const router = useRouter();
   const saveTripMutation = useMutation(api.trips.saveNewTrip);
-  const [isSaveTrip, setIsSaveTrip] = useState<boolean>(false);
+  const [tripId, setTripId] = useState<any>();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -104,26 +103,17 @@ export const ChatBox = () => {
       if (res.status == 200) {
         console.log(res.data);
         const tripData = res?.data?.trip_plan || res?.data;
-        setFinalTrip(tripData);
+        // save to db
+        const id = await saveTripMutation({
+          tripPlan: tripData,
+          userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
+        });
+        setTripId(id);
       }
     } catch (error) {
       console.log("something wrong while generating trip", error);
     } finally {
       setIsGeneratingPlan(false);
-    }
-  };
-  const saveGeneratedTripPlan = async () => {
-    try {
-      setIsSaveTrip(true);
-      const tripId = await saveTripMutation({
-        tripPlan: finalTrip,
-        userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
-      });
-      router.push(`/trips/${tripId}`);
-    } catch (error) {
-      console.log("something wrong while saving trip", error);
-    } finally {
-      setIsSaveTrip(false);
     }
   };
 
@@ -216,10 +206,9 @@ export const ChatBox = () => {
           <Button
             className="w-full mt-3 rounded-xl shadow-sm"
             disabled={isGeneratingPlan}
-            onClick={saveGeneratedTripPlan}
+            onClick={() => router.push(`/trips/${tripId}`)}
           >
-            Save & View Trip Plan{" "}
-            {isSaveTrip && <Spinner className="size-5 text-white" />}
+            Save & View Trip Plan
           </Button>
         </div>
       );

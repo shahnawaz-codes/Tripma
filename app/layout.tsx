@@ -20,6 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={outfit.className}>
+      <link rel="icon" href="/logo.svg" sizes="any" />
       <body className="min-h-screen flex flex-col">
         <ClerkProvider>
           <ConvexClientProvider>{children}</ConvexClientProvider>
