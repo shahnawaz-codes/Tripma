@@ -7,7 +7,6 @@ export const saveNewTrip = mutation({
     userEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    
     const tripId = await ctx.db.insert("trips", {
       tripPlan: args.tripPlan,
       userEmail: args.userEmail,
@@ -16,6 +15,22 @@ export const saveNewTrip = mutation({
   },
 });
 export const getTrips = query({
-  args: {},
-  handler: () => {},
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const trips = await ctx.db.query("trips").filter((q) => {
+      return q.eq(q.field("userEmail"), args.email);
+    });
+    return trips;
+  },
+});
+
+export const getTripById = query({
+  args: {
+    tripId: v.id("trips"),
+  },
+  handler: async (ctx, agrs) => {
+    return await ctx.db.get("trips", agrs.tripId);
+  },
 });
