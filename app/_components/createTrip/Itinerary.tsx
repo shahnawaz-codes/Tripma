@@ -357,12 +357,11 @@ const TRIP_DATA = {
 export function Itinerary() {
   // TODO: Fetch this data dynamically from the backend or via props based on the active trip plan
   const trip = TRIP_DATA;
-  const openMap = (lat: number, lng: number) => {
-    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+  const openMap = (lat: number, lng: number, placeId: string) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeId)}`;
     window.open(url, "_blank");
   };
-  // Transform hotels into a timeline format where all options are grouped in one timeline node
-  // This allows us to use responsive grids instead of forcing 1 hotel per row
+  
   const hotelTimelineData = [
     {
       title: "Options",
@@ -441,8 +440,8 @@ export function Itinerary() {
                     openMap(
                       hotel.geo_coordinates.latitude,
                       hotel.geo_coordinates.latitude,
+                      hotel.hotel_name,
                     );
-                    console.log("View hotel on map:", hotel.geo_coordinates);
                   }}
                 >
                   <Map className="w-3.5 h-3.5" />
@@ -544,6 +543,7 @@ export function Itinerary() {
                     openMap(
                       activity.geo_coordinates.latitude,
                       activity.geo_coordinates.longitude,
+                      activity.place_name,
                     );
                   }}
                 >
