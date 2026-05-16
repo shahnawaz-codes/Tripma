@@ -16,7 +16,7 @@ type Message = {
   content: string;
   ui?: string;
 };
-type TripPlan = {
+export type TripPlan = {
   destination: string;
   duration: string;
   origin: string;
@@ -101,7 +101,6 @@ export const ChatBox = () => {
       });
       console.log(res.data);
       if (res.status == 200) {
-        console.log(res.data);
         const tripData = res?.data?.trip_plan || res?.data;
         // save to db
         const id = await saveTripMutation({
