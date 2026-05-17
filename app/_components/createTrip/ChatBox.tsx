@@ -10,26 +10,19 @@ import { Bot, Send, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DurationSelector } from "./DurationSelector";
+import { TripPlan } from "@/types/trip";
+import { Id } from "@/convex/_generated/dataModel";
 
 type Message = {
   role: string;
   content: string;
   ui?: string;
 };
-export type TripPlan = {
-  destination: string;
-  duration: string;
-  origin: string;
-  budget: string;
-  group_size: string;
-  hotels: object;
-  itinerary: object;
-};
 export const ChatBox = () => {
   const { user } = useUser();
   const router = useRouter();
   const saveTripMutation = useMutation(api.trips.saveNewTrip);
-  const [tripId, setTripId] = useState<any>();
+  const [tripId, setTripId] = useState<Id<"trips">>();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
