@@ -31,7 +31,7 @@ export const ChatBox = () => {
     },
   ]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [finalTrip, setFinalTrip] = useState<TripPlan>();
+  const [finalTrip, setFinalTrip] = useState<TripPlan | null>(null);
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -46,7 +46,6 @@ export const ChatBox = () => {
     }, 100);
     return () => clearTimeout(timeoutId);
   }, [messages]);
-
   //---------Generate plan: call() trigger when msgs have final ui
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
@@ -95,6 +94,7 @@ export const ChatBox = () => {
       console.log(res.data);
       if (res.status == 200) {
         const tripData = res?.data?.trip_plan || res?.data;
+        setFinalTrip(tripData);
         // save to db
         const id = await saveTripMutation({
           tripPlan: tripData,
