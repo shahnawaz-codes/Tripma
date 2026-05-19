@@ -362,12 +362,14 @@ const CreateTrip = () => {
         <ResizablePanel
           defaultSize={60}
           minSize={30}
-          className="hidden lg:flex items-center justify-center bg-slate-100"
+          className="hidden lg:block bg-white dark:bg-neutral-950 overflow-hidden h-full"
         >
           {TRIP_DATA ? (
             <Itinerary trip_data={TRIP_DATA} />
           ) : (
-            <h1>Trip plan will be showing here</h1>
+            <div className="flex items-center justify-center w-full h-full">
+              <h1 className="text-neutral-500 font-medium">Trip plan will be showing here</h1>
+            </div>
           )}
         </ResizablePanel>
       </ResizablePanelGroup>

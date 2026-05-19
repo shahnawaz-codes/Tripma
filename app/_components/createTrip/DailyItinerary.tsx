@@ -25,7 +25,7 @@ export function DailyItinerary({ itinerary, openMap }: DailyItineraryProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] gap-6">
           {day.activities.map((activity, idx) => (
             <div
               key={idx}
@@ -33,7 +33,7 @@ export function DailyItinerary({ itinerary, openMap }: DailyItineraryProps) {
             >
               <div className="h-52 shrink-0 relative overflow-hidden bg-neutral-200 dark:bg-neutral-800 m-2 rounded-2xl">
                 <img
-                  src={activity.place_image_url}
+                  src={"https://placehold.co/600x400?text=Image+Unavailable"}
                   alt={activity.place_name}
                   className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700"
                   onError={(e) => {
