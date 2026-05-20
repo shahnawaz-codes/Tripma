@@ -14,33 +14,13 @@ type ActivityCardProps = {
 };
 
 export function ActivityCard({ activity, openMap, index }: ActivityCardProps) {
-  const [image, setImage] = useState("");
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      const placeName = activity.place_name + " " + activity.place_address;
-
-      try {
-        const res = await axios.post("/api/generate-place-image", {
-          geoCoordinates: activity.geo_coordinates,
-          placeName,
-        });
-        setImage(res.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchImage();
-  }, [activity.place_name, activity.place_address, activity.geo_coordinates]);
-
   return (
     <div className="flex flex-col overflow-hidden rounded-3xl bg-neutral-50/50 dark:bg-neutral-900/30 border border-neutral-200/50 dark:border-neutral-800/50 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(255,255,255,0.02)] hover:-translate-y-1 duration-300 w-full group h-full">
       <div className="h-52 shrink-0 relative overflow-hidden bg-neutral-200 dark:bg-neutral-800 m-2 rounded-2xl">
         <Image
           src={
-            image
-              ? image
-              : "https://placehold.co/600x400.png?text=Image+Unavailable"
+            activity.place_image_url ||
+            "https://placehold.co/600x400.png?text=Image+Unavailable"
           }
           alt={activity.place_name}
           className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700"

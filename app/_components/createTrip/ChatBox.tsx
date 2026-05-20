@@ -12,6 +12,11 @@ import { useEffect, useRef, useState } from "react";
 import { DurationSelector } from "./DurationSelector";
 import { TripPlan } from "@/types/trip";
 import { Id } from "@/convex/_generated/dataModel";
+import Image from "next/image";
+import { RenderOptions } from "@/components/utils/renderOption";
+import { RenderGenerativeUi } from "@/components/utils/renderGenerativeUi";
+import { generateImgForHotels } from "@/lib/generateImgForHotels";
+import { generateImgForactivities } from "@/lib/generateImgForactivities";
 
 type Message = {
   role: string;
@@ -46,13 +51,46 @@ export const ChatBox = () => {
     }, 100);
     return () => clearTimeout(timeoutId);
   }, [messages]);
+
   //---------Generate plan: call() trigger when msgs have final ui
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg.ui === "final") {
+      async function generateFinalTripPlan() {
+        try {
+          setIsGeneratingPlan(true);
+          const res = await axios.post("/api/generate-trip", {
+            message: messages,
+          });
+          if (res.status == 200) {
+            const tripData = res?.data?.trip_plan || res?.data;
+            setFinalTrip(tripData);
+
+            const hotelWithImage = await generateImgForHotels(tripData?.hotels);
+            const itineraryWithImage = await generateImgForactivities(
+              tripData?.tripPlan,
+            );
+            const tripPlan = {
+              ...tripData,
+              hotels: hotelWithImage,
+              tripPlan: itineraryWithImage,
+            };
+            // save to db
+            const id = await saveTripMutation({
+              tripPlan: tripData,
+              userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
+            });
+            setTripId(id);
+          }
+        } catch (error) {
+          console.log("something wrong while generating trip", error);
+        } finally {
+          setIsGeneratingPlan(false);
+        }
+      }
       generateFinalTripPlan();
     }
-  }, [messages]);
+  }, [messages, user?.primaryEmailAddress?.emailAddress, saveTripMutation]);
   // call ai endpoint
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
@@ -87,127 +125,12 @@ export const ChatBox = () => {
       setIsLoading(false);
     }
   };
-  const generateFinalTripPlan = async () => {
-    try {
-      setIsGeneratingPlan(true);
-      const res = await axios.post("/api/generate-trip", {
-        message: messages,
-      });
-      console.log(res.data);
-      if (res.status == 200) {
-        const tripData = res?.data?.trip_plan || res?.data;
-        setFinalTrip(tripData);
-        // save to db
-        const id = await saveTripMutation({
-          tripPlan: tripData,
-          userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
-        });
-        setTripId(id);
-      }
-    } catch (error) {
-      console.log("something wrong while generating trip", error);
-    } finally {
-      setIsGeneratingPlan(false);
-    }
-  };
 
-  const renderGenerativeUi = (ui: string) => {
-    if (!ui) return null;
-
-    const renderOptions = (
-      options: { label: string; icon: string; desc?: string }[],
-    ) => (
-      <div className="grid grid-cols-2 gap-2 mt-3 w-full sm:w-[80%] lg:w-[300px]">
-        {options.map((opt) => (
-          <Button
-            key={opt.label}
-            variant="outline"
-            className="flex flex-col items-center justify-center gap-1.5 h-auto py-3 px-2 rounded-xl bg-white hover:bg-primary/5 hover:border-primary/40 border-gray-100 transition-all text-xs shadow-sm"
-            onClick={() => sendMessage(opt.label)}
-            disabled={isLoading}
-          >
-            <span className="text-2xl mb-0.5">{opt.icon}</span>
-            <span className="font-semibold text-gray-700 whitespace-normal text-center leading-tight">
-              {opt.label}
-            </span>
-            {opt.desc && (
-              <span className="text-[10px] text-gray-400 font-normal mt-0">
-                {opt.desc}
-              </span>
-            )}
-          </Button>
-        ))}
-      </div>
-    );
-    if (ui === "source") {
-      return renderOptions([
-        { label: "New York", icon: "🗽" },
-        { label: "London", icon: "💂" },
-        { label: "Tokyo", icon: "🗼" },
-        { label: "Paris", icon: "🥐" },
-      ]);
-    } else if (ui === "destination") {
-      return renderOptions([
-        { label: "Maldives", icon: "🏖️" },
-        { label: "Swiss Alps", icon: "🏔️" },
-        { label: "Kyoto", icon: "⛩️" },
-        { label: "Bali", icon: "🌴" },
-      ]);
-    } else if (ui === "budget") {
-      return renderOptions([
-        { label: "Low", icon: "🎒", desc: "Backpacking" },
-        { label: "Moderate", icon: "🏨", desc: "Comfort" },
-        { label: "Luxury", icon: "💎", desc: "Premium" },
-      ]);
-    } else if (ui === "groupSize") {
-      return renderOptions([
-        { label: "Solo", icon: "👤", desc: "Just me" },
-        { label: "Couple", icon: "💑", desc: "Romantic" },
-        { label: "Family", icon: "👨‍👩‍👧‍👦", desc: "With kids" },
-        { label: "Friends", icon: "👯", desc: "Group trip" },
-      ]);
-    } else if (ui === "tripDuration") {
-      return <DurationSelector onSelect={sendMessage} disabled={isLoading} />;
-    } else if (ui === "interests") {
-      return renderOptions([
-        { label: "Nature", icon: "🌲" },
-        { label: "Culture", icon: "🏛️" },
-        { label: "Food", icon: "🍜" },
-        { label: "Relaxation", icon: "🏖️" },
-      ]);
-    } else if (ui === "preferences") {
-      return renderOptions([
-        { label: "Fast Paced", icon: "🏃", desc: "See it all" },
-        { label: "Relaxed", icon: "🐢", desc: "Take it easy" },
-      ]);
-    } else if (ui === "final") {
-      return (
-        <div className="mt-4 p-5 border border-primary/20 bg-primary/5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center w-full sm:w-[80%] lg:w-[300px]">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-1">
-            <Sparkles className="w-6 h-6 text-primary animate-pulse" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-800 text-sm">
-              {/* TODO: Change this text to "Your trip plan is ready!" when generation is complete */}
-              {isGeneratingPlan
-                ? "Your trip plan is generating...."
-                : "Your trip plan is ready!"}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-              Please wait a moment while we craft your perfect itinerary.
-            </p>
-          </div>
-          <Button
-            className="w-full mt-3 rounded-xl shadow-sm"
-            disabled={isGeneratingPlan}
-            onClick={() => router.push(`/trips/${tripId}`)}
-          >
-            Save & View Trip Plan
-          </Button>
-        </div>
-      );
-    }
-    return null;
+  const RenderGenerativeUiProps = {
+    sendMessage,
+    isLoading,
+    isGeneratingPlan,
+    tripId,
   };
 
   return (
@@ -236,10 +159,12 @@ export const ChatBox = () => {
               rounded-full 
               "
               >
-                <img
+                <Image
                   className="rounded-full "
-                  src={user?.imageUrl}
+                  src={user?.imageUrl || ""}
                   alt="profile"
+                  width={24}
+                  height={24}
                 />
               </div>
             </div>
@@ -251,7 +176,12 @@ export const ChatBox = () => {
                 </div>
                 <div className="bg-white border border-gray-100 text-gray-800 p-3 px-4 rounded-2xl rounded-tl-sm shadow-sm max-w-[80%]">
                   <p className="text-sm leading-relaxed">{msg.content}</p>
-                  {msg.ui && renderGenerativeUi(msg.ui)}
+                  {msg.ui && (
+                    <RenderGenerativeUi
+                      ui={msg.ui}
+                      {...RenderGenerativeUiProps}
+                    />
+                  )}
                 </div>
               </div>
             </div>

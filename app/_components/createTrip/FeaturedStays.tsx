@@ -12,24 +12,6 @@ interface FeaturedStaysProps {
 }
 
 export function FeaturedStays({ hotel, openMap }: FeaturedStaysProps) {
-  const [image, setImage] = useState<string>("");
-  useEffect(() => {
-    const fetchImage = async () => {
-      const placeName = hotel.hotel_name + " " + hotel.hotel_address;
-
-      try {
-        const res = await axios.post("/api/generate-place-image", {
-          geoCoordinates: hotel.geo_coordinates,
-          placeName,
-        });
-
-        setImage(res.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchImage();
-  }, [hotel.hotel_name, hotel.hotel_address, hotel.geo_coordinates]);
   return (
     <div
       className="group relative h-95 rounded-3xl overflow-hidden cursor-pointer"
@@ -43,9 +25,8 @@ export function FeaturedStays({ hotel, openMap }: FeaturedStaysProps) {
     >
       <Image
         src={
-          image
-            ? image
-            : "https://placehold.co/600x800.png?text=Image+Unavailable"
+          hotel.hotel_image_url ||
+          "https://placehold.co/600x400.png?text=Image+Unavailable"
         }
         fill
         alt={hotel.hotel_name}
