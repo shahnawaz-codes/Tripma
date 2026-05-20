@@ -57,7 +57,7 @@ export const ChatBox = () => {
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
     // store user ques with role
-    let userAsk: Message = {
+    const userAsk: Message = {
       role: "user",
       content: text,
     };
@@ -75,12 +75,14 @@ export const ChatBox = () => {
         ...prev,
         { role: "assistant", content: resp, ui: ui },
       ]);
-    } catch (error: any) {
-      console.error("Failed to send message:", error);
-      alert(
-        "Backend API Error: " +
-          (error.response?.data?.details || error.message),
-      );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error("Failed to send message:", error);
+        alert(
+          "Backend API Error: " +
+            (error.response?.data?.details || error.message),
+        );
+      }
     } finally {
       setIsLoading(false);
     }

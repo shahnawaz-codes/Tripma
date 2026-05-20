@@ -1,9 +1,10 @@
 "use client";
 
 import { MapPin, Star, Wallet, Map } from "lucide-react";
-import { Hotel, TripPlan } from "@/types/trip";
+import { Hotel } from "@/types/trip";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface FeaturedStaysProps {
   hotel: Hotel;
@@ -13,23 +14,25 @@ interface FeaturedStaysProps {
 export function FeaturedStays({ hotel, openMap }: FeaturedStaysProps) {
   const [image, setImage] = useState<string>("");
   useEffect(() => {
-    getImage();
-  }, [hotel]);
-  const getImage = async () => {
-    let placeName = hotel.hotel_name + " " + hotel.hotel_address;
-    try {
-      const res = await axios.post("/api/generate-place-image", {
-        geoCoordinates: hotel.geo_coordinates,
-        placeName: placeName,
-      });
-    setImage(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    const fetchImage = async () => {
+      const placeName = hotel.hotel_name + " " + hotel.hotel_address;
+
+      try {
+        const res = await axios.post("/api/generate-place-image", {
+          geoCoordinates: hotel.geo_coordinates,
+          placeName,
+        });
+
+        setImage(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchImage();
+  }, [hotel.hotel_name, hotel.hotel_address, hotel.geo_coordinates]);
   return (
     <div
-      className="group relative h-[380px] rounded-3xl overflow-hidden cursor-pointer"
+      className="group relative h-95 rounded-3xl overflow-hidden cursor-pointer"
       onClick={() => {
         openMap(
           hotel.geo_coordinates.latitude,
@@ -38,15 +41,19 @@ export function FeaturedStays({ hotel, openMap }: FeaturedStaysProps) {
         );
       }}
     >
-      <img
+      <Image
         src={
-          image ? image : "https://placehold.co/600x800?text=Image+Unavailable"
+          image
+            ? image
+            : "https://placehold.co/600x800.png?text=Image+Unavailable"
         }
+        fill
         alt={hotel.hotel_name}
+        sizes="100%"
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         onError={(e) => {
           (e.target as HTMLImageElement).src =
-            "https://placehold.co/600x800?text=Image+Unavailable";
+            "https:///600x800?text=Image+Unavailable";
         }}
       />
       {/* Gradient Overlay */}
