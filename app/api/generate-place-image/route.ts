@@ -1,11 +1,11 @@
-import { getWikipediaImage } from "@/.qodo/workflows/api/wikipedia";
+import { getWikipediaImage } from "@/api/wikipedia";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
     const { geoCoordinates, placeName } = await req.json();
-    const { latitude, longitude } = geoCoordinates;
+    const { latitude, longitude } = geoCoordinates || {};
     if (!placeName || !latitude || !longitude) {
       return NextResponse.json(
         {

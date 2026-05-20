@@ -40,7 +40,7 @@ Output Schema:
         "hotel_name": "string",
         "hotel_address": "string",
         "price_per_night": "string",
-        "hotel_image_url": "string",
+        
 
         "geo_coordinates": {
           "latitude": number,
@@ -62,7 +62,7 @@ Output Schema:
           {
             "place_name": "string",
             "place_details": "string",
-            "place_image_url": "string",
+           
 
             "geo_coordinates": {
               "latitude": number,
@@ -153,20 +153,22 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(parsedData);
-  } catch (error: any) {
-    if (error?.status === 429) {
+  } catch (error: unknown) {
+    if (error instanceof Response) {
+      if (error?.status === 429) {
+        return NextResponse.json(
+          { error: "Rate limit hit. Try again in a moment." },
+          { status: 429 },
+        );
+      }
+      console.error("API ROUTE ERROR:", error);
       return NextResponse.json(
-        { error: "Rate limit hit. Try again in a moment." },
-        { status: 429 },
+        {
+          error: "Failed to generate trip response",
+          details: error instanceof Error ? error.message : String(error),
+        },
+        { status: 500 },
       );
     }
-    console.error("API ROUTE ERROR:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to generate trip response",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
   }
 }
