@@ -1,3 +1,4 @@
+import { getWikipediaImage } from "@/.qodo/workflows/api/wikipedia";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -5,47 +6,42 @@ export async function POST(req: NextRequest) {
   try {
     const { geoCoordinates, placeName } = await req.json();
     const { latitude, longitude } = geoCoordinates;
-
-    let url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(
-      placeName,
-    )}&gsrlimit=1&prop=pageimages&pithumbsize=600&format=json&origin=*`;
-
-    let res = await axios.get(url, {
-      headers: {
-        "User-Agent": "MyTripPlanner/1.0",
-      },
-    });
-    let page = res.data?.query?.pages;
-    if (page) {
+    if (!placeName || !latitude || !longitude) {
       return NextResponse.json(
-        (Object.values(page)[0] as any)?.thumbnail?.source,
+        {
+          message: "placeName, latitude and longitude are required",
+        },
+        {
+          status: 400,
+        },
       );
     }
-
-    /// ----------------------- fallback-----------------------------------
-    url = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&pithumbsize=600&generator=geosearch&ggscoord=${latitude}|${longitude}&ggsradius=500&ggslimit=1&format=json&origin=*`;
-    res = await axios.get(url, {
-      headers: {
-        "User-Agent": "MyTripPlanner/1.0",
-      },
-    });
-    page = res.data?.query?.pages;
-    if (page) {
+    const imageSource = await getWikipediaImage(placeName, latitude, longitude);
+    if (!imageSource) {
       return NextResponse.json(
-        (Object.values(page)[0] as any)?.thumbnail?.source,
+        "https://placehold.co/600x800.png?text=Image+Unavailable",
       );
     }
-    return null;
-  } catch (error: any) {
-    console.log(error.response?.data);
+    return NextResponse.json(imageSource);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      return NextResponse.json(
+        {
+          message: error.message,
+          data: error.response?.data,
+        },
+        {
+          status: error.response?.status || 500,
+        },
+      );
+    }
 
     return NextResponse.json(
       {
-        message: error.message,
-        data: error.response?.data,
+        message: "Unknown error",
       },
       {
-        status: error.response?.status || 500,
+        status: 500,
       },
     );
   }
