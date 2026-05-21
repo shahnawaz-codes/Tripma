@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     }
     const normalizedMessages = message.map(
       (msg: { role: string; content: string }) => ({
-        role: msg.role === "model" ? "assistant" : msg.role,
+        role: msg.role,
         content: msg.content,
       }),
     );

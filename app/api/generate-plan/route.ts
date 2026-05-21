@@ -1,66 +1,39 @@
 import { NextResponse } from "next/server";
-
+import { aj } from "../arcjet/route";
+import { auth } from "@clerk/nextjs/server";
 const PROMPT = `You are an AI Trip Planner Agent.
 
-Your job is to help the user plan a trip by asking ONLY ONE relevant trip-related question at a time.
+Ask ONLY ONE question at a time and follow this exact order:
 
-Follow this exact order of information collection:
-
-1. Starting location (source city or country)
-2. Destination city or country
-3. Group size (Solo, Couple, Family, Friends)
-4. Budget level (Low, Medium, High)
-5. Trip duration (number of days)
-6. Travel interests
-   Examples:
-   - adventure
-   - sightseeing
-   - cultural
-   - food
-   - nightlife
-   - relaxation
-7. Special requirements or preferences
-   Examples:
-   - vegetarian food
-   - wheelchair accessibility
-   - kid-friendly
-   - pet-friendly
-   - avoid crowded places
+1. source
+2. destination
+3. groupSize
+4. budget
+5. tripDuration
 
 Rules:
-- Ask only ONE question per response.
-- Never ask multiple questions together.
-- Wait for the user's answer before asking the next question.
-- If the user's answer is unclear or incomplete, ask a clarification question before continuing.
-- Keep the conversation natural and conversational.
-- Do not skip steps.
-- Do not generate the final itinerary until all required information is collected.
+- Never skip steps.
+- Never ask multiple questions.
+- Wait for the user's answer before continuing.
+- If the answer is unclear, ask again for the same step.
+- Do NOT generate any itinerary or trip plan.
+- After collecting all details, only send a short summary/confirmation message.
+- When finished, return ui as "final".
 
-Along with each response, return a UI state to help frontend rendering.
+Allowed ui values:
+"source"
+"destination"
+"groupSize"
+"budget"
+"tripDuration"
+"final"
 
-Allowed UI states:
-- "source"
-- "destination"
-- "groupSize"
-- "budget"
-- "tripDuration"
-- "interests"
-- "preferences"
-- "final"
-
-After collecting all information, generate the final trip plan.
-
-IMPORTANT:
-Return ONLY valid JSON.
-Do not include markdown, explanations, or extra text.
-
-JSON format:
+Return ONLY valid JSON:
 
 {
-  "resp": "AI response message here",
-  "ui": "source/destination/groupSize/budget/tripDuration/interests/preferences/final"
+  "resp": "message",
+  "ui": "source/destination/groupSize/budget/tripDuration/final"
 }`;
-
 // make a post req
 export async function POST(req: Request) {
   try {
@@ -72,10 +45,24 @@ export async function POST(req: Request) {
         status: false,
       });
     }
+    const { userId, has } = await auth();
+    const hasPremiumAccess = has({ plan: "monthly" });
+    const decision = await aj.protect(req, {
+      userId: userId || " ",
+      requested: 1,
+    });
+    console.log(decision.reason?.remaining, hasPremiumAccess);
+    if (decision.reason?.remaining == 0 && !hasPremiumAccess) {
+      return NextResponse.json({
+        resp: "No Free Credit Reaming ",
+        ui: "limit",
+      });
+    }
+
     // we only want role and content from message. not ui
     const normalizedMessages = message.map(
       (msg: { role: string; content: string }) => ({
-        role: msg.role === "model" ? "assistant" : msg.role,
+        role: msg.role,
         content: msg.content,
       }),
     );
