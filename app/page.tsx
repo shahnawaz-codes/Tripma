@@ -12,6 +12,7 @@ export default function page() {
         <DemoVideo />
         <PopularDestinations />
       </main>
+      
       <Footer />
     </div>
   );

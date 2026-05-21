@@ -2,21 +2,18 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { RenderGenerativeUi } from "@/components/utils/renderGenerativeUi";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { generateImgForHotels } from "@/lib/generateImgForHotels";
+import { generateImgForactivities } from "@/lib/generateImgForactivities";
+import { TripPlan } from "@/types/trip";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { useMutation } from "convex/react";
-import { Bot, Send, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { DurationSelector } from "./DurationSelector";
-import { TripPlan } from "@/types/trip";
-import { Id } from "@/convex/_generated/dataModel";
+import { Bot, Send } from "lucide-react";
 import Image from "next/image";
-import { RenderOptions } from "@/components/utils/renderOption";
-import { RenderGenerativeUi } from "@/components/utils/renderGenerativeUi";
-import { generateImgForHotels } from "@/lib/generateImgForHotels";
-import { generateImgForactivities } from "@/lib/generateImgForactivities";
+import { useEffect, useRef, useState } from "react";
 
 type Message = {
   role: string;
@@ -25,7 +22,7 @@ type Message = {
 };
 export const ChatBox = () => {
   const { user } = useUser();
-  const router = useRouter();
+  const userImage = user?.imageUrl;
   const saveTripMutation = useMutation(api.trips.saveNewTrip);
   const [tripId, setTripId] = useState<Id<"trips">>();
   const [messages, setMessages] = useState<Message[]>([
@@ -36,7 +33,7 @@ export const ChatBox = () => {
     },
   ]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [finalTrip, setFinalTrip] = useState<TripPlan | null>(null);
+  // const [finalTrip, setFinalTrip] = useState<TripPlan | null>(null);
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -64,22 +61,24 @@ export const ChatBox = () => {
           });
           if (res.status == 200) {
             const tripData = res?.data?.trip_plan || res?.data;
-            setFinalTrip(tripData);
+            // setFinalTrip(tripData);
 
             const hotelWithImage = await generateImgForHotels(tripData?.hotels);
             const itineraryWithImage = await generateImgForactivities(
-              tripData?.tripPlan,
+              tripData?.itinerary,
             );
             const tripPlan = {
               ...tripData,
               hotels: hotelWithImage,
-              tripPlan: itineraryWithImage,
+              itinerary: itineraryWithImage,
             };
+            console.log(tripPlan);
             // save to db
             const id = await saveTripMutation({
-              tripPlan: tripData,
+              tripPlan: tripPlan,
               userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
             });
+            console.log("saved trip with id:", id);
             setTripId(id);
           }
         } catch (error) {
@@ -161,7 +160,7 @@ export const ChatBox = () => {
               >
                 <Image
                   className="rounded-full "
-                  src={user?.imageUrl || ""}
+                  src={userImage || ""}
                   alt="profile"
                   width={24}
                   height={24}
