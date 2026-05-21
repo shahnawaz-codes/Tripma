@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 const FINAL_PROMPT = `
@@ -121,8 +120,6 @@ export async function POST(req: Request) {
     );
 
     const data = await response.json();
-    console.log("data:", data.choices?.[0]?.message?.content);
-
     if (data.error) {
       console.error("OpenRouter API Error:", data.error);
       return NextResponse.json(data, { status: data.error.code || 500 });
