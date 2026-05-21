@@ -1,10 +1,10 @@
-import { Activities, Itinerary } from "@/types/trip";
+import { Itinerary } from "@/types/trip";
 import { fetchImage } from "@/utils/fetchImage";
 
 export const generateImgForactivities = async (itinerary: Itinerary[]) => {
   return await Promise.all(
     itinerary.map(async (it) => {
-      return await Promise.all(
+      const activityWithImages = await Promise.all(
         it.activities.map(async (activity) => {
           const placeName = activity.place_name + " " + activity.place_address;
           const imageUrl = await fetchImage(
@@ -12,11 +12,15 @@ export const generateImgForactivities = async (itinerary: Itinerary[]) => {
             activity.geo_coordinates,
           );
           return {
-            ...it.activities,
+            ...activity,
             place_image_url: imageUrl,
           };
         }),
       );
+      return {
+        ...it,
+        activities: activityWithImages,
+      };
     }),
   );
 };
