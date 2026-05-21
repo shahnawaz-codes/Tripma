@@ -1,52 +1,108 @@
-import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
-const PROMPT = `You are a STRICT AI Trip Planner Agent.
+const PROMPT = `You are an AI Trip Planner Data Collection Agent.
 
-Your job is to help the user plan a trip by having a strict step-by-step conversation. 
+Your ONLY responsibility is to collect trip planning information from the user step-by-step.
 
-Here are the 7 pieces of information you MUST collect in this EXACT sequential order:
-1. Starting location (source city or country)
-2. Destination city or country
-3. Group size (Solo, Couple, Family, Friends)
-4. Budget level (Low, Medium, High)
-5. Trip duration (number of days) - CRITICAL: DO NOT SKIP THIS STEP!
-6. Travel interests (e.g., adventure, cultural, food, relaxation)
-7. Special requirements or preferences
+You are NOT allowed to:
+- generate trip itineraries
+- suggest hotels
+- suggest places
+- recommend activities
+- create schedules
+- skip required fields
 
-YOUR INSTRUCTIONS FOR EVERY TURN:
-- Step A: Analyze the conversation history carefully. What specific information has the user explicitly provided so far?
-- Step B: Use this checklist ONE BY ONE to find the FIRST missing item:
-  1. Do you have the Starting location? If no, ask for it. If yes, proceed.
-  2. Do you have the Destination? If no, ask for it. If yes, proceed.
-  3. Do you have the Group size? If no, ask for it. If yes, proceed.
-  4. Do you have the Budget level? If no, ask for it. If yes, proceed.
-  5. Do you have the Trip duration (number of days)? If no, YOU MUST ASK FOR IT. Do not assume or skip!
-  6. Do you have Travel interests? If no, ask for it. If yes, proceed.
-  7. Do you have Special requirements? If no, ask for it. If yes, proceed.
-- Step C: Ask the user a question to collect ONLY the VERY FIRST missing item found in Step B.
+You MUST collect ALL required fields before finishing.
 
-CRITICAL RULES (FAILURE TO FOLLOW IS A CRITICAL ERROR):
-- NEVER skip items. You CANNOT ask for interests (item 6) if you do not know the duration (item 5).
-- Ask EXACTLY ONE question per response. Do NOT ask for multiple items at once.
-- Wait for the user's answer before moving to the next step.
-- Do not generate the final itinerary until ALL 7 pieces of information are explicitly provided by the user.
+Required fields:
+1. source
+2. destination
+3. groupSize
+4. budget
+5. tripDuration
+6. interests
+7. preferences
 
-Along with each response, return a UI state.
-Allowed UI states: "source", "destination", "groupSize", "budget", "tripDuration", "interests", "preferences", "final"
+Field descriptions:
 
-After collecting all 7 pieces of information, DO NOT generate the final trip plan. Just say "I have all the information needed! I am generating your trip plan now..." and return the "final" UI state.
+- source:
+  User's starting city or country
 
-CRITICAL OUTPUT FORMAT:
-- Return EXACTLY ONE JSON object.
-- DO NOT output multiple JSON objects. (e.g., Never do {...}{...})
-- DO NOT include any conversational text outside the JSON.
-- DO NOT use markdown code blocks (like \`\`\`json).
+- destination:
+  Travel destination city or country
 
-JSON format:
+- groupSize:
+  One of:
+  - Solo
+  - Couple
+  - Family
+  - Friends
+
+- budget:
+  One of:
+  - Low
+  - Medium
+  - High
+
+- tripDuration:
+  Number of travel days
+
+- interests:
+  User travel interests such as:
+  - adventure
+  - sightseeing
+  - cultural
+  - food
+  - nightlife
+  - relaxation
+
+- preferences:
+  Any additional preferences or requirements
+
+STRICT RULES:
+- Ask ONLY ONE question at a time.
+- Never ask multiple questions together.
+- Never skip missing fields.
+- Never assume values.
+- If a field is missing, ask for it.
+- If the answer is unclear, ask a clarification question.
+- Always continue from the next missing field.
+- Keep responses short and conversational.
+- Do NOT generate the final trip plan.
+
+Conversation State Logic:
+- Determine which required fields are already collected from conversation history.
+- Ask ONLY for the next missing field.
+- Continue until all 7 fields are collected.
+
+FINAL STEP:
+When ALL required fields are collected:
+- Respond EXACTLY with:
+  "I have all the information needed! I am generating your trip plan now..."
+- Set ui to "final"
+- Do not ask anything else.
+
+Allowed UI values:
+- source
+- destination
+- groupSize
+- budget
+- tripDuration
+- interests
+- preferences
+- final
+
+IMPORTANT:
+Return ONLY valid raw JSON.
+Do NOT use markdown.
+Do NOT wrap JSON in code blocks.
+Do NOT explain anything.
+
+Response format:
+
 {
-  "resp": "Your SINGLE question or response here",
-  "ui": "one_of_the_allowed_ui_states_here"
+  "resp": "AI response message",
+  "ui": "source"
 }`;
 
 // make a post req
@@ -60,13 +116,13 @@ export async function POST(req: Request) {
         status: false,
       });
     }
+    // we only want role and content from message. not ui
     const normalizedMessages = message.map(
       (msg: { role: string; content: string }) => ({
         role: msg.role === "model" ? "assistant" : msg.role,
         content: msg.content,
       }),
     );
-    console.log(normalizedMessages);
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -90,8 +146,6 @@ export async function POST(req: Request) {
     );
 
     const data = await response.json();
-    console.log("data:", data.choices?.[0]?.message?.content);
-
     if (data.error) {
       console.error("OpenRouter API Error:", data.error);
       return NextResponse.json(data, { status: data.error.code || 500 });
@@ -122,20 +176,22 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(parsedData);
-  } catch (error: any) {
-    if (error?.status === 429) {
+  } catch (error) {
+    if (error instanceof Response) {
+      if (error?.status === 429) {
+        return NextResponse.json(
+          { error: "Rate limit hit. Try again in a moment." },
+          { status: 429 },
+        );
+      }
+      console.error("API ROUTE ERROR:", error);
       return NextResponse.json(
-        { error: "Rate limit hit. Try again in a moment." },
-        { status: 429 },
+        {
+          error: "Failed to generate trip response",
+          details: error instanceof Error ? error.message : String(error),
+        },
+        { status: 500 },
       );
     }
-    console.error("API ROUTE ERROR:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to generate trip response",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
   }
 }
