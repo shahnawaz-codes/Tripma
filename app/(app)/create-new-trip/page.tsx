@@ -1,10 +1,12 @@
+"use client";
 import { ChatBox } from "@/app/_components/createTrip/ChatBox";
-import React from "react";
+import React, { useState } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { TripPlan } from "@/types/trip";
 import Itinerary from "@/app/_components/createTrip/Itinerary";
 // const TRIP_DATA = {
 //   budget: "Moderate",
@@ -345,6 +347,8 @@ import Itinerary from "@/app/_components/createTrip/Itinerary";
 //   origin: "London, United Kingdom",
 // };
 const CreateTrip = () => {
+  const [tripPlanInfo, setTripPlanInfo] = useState<TripPlan | null>(null);
+
   return (
     <div className="w-full h-[calc(100vh-70px)] overflow-hidden">
       <ResizablePanelGroup orientation="horizontal" className="w-full h-full">
@@ -354,7 +358,7 @@ const CreateTrip = () => {
           minSize={25}
           className="bg-white min-w-full lg:min-w-0"
         >
-          <ChatBox />
+          <ChatBox setTripPlanInfo={setTripPlanInfo} />
         </ResizablePanel>
         <ResizableHandle withHandle className="hidden lg:flex" />
         {/* display map and area place  */}
@@ -363,14 +367,15 @@ const CreateTrip = () => {
           minSize={30}
           className="hidden lg:block bg-white dark:bg-neutral-950 overflow-hidden h-full"
         >
-          {/* {TRIP_DATA ? (
-            <Itinerary trip_data={TRIP_DATA} />
-          ) : ( */}
-          <div className="flex items-center justify-center w-full h-full">
-            <h1 className="text-neutral-500 font-medium">
-              Trip plan will be showing here
-            </h1>
-          </div>
+          {tripPlanInfo ? (
+            <Itinerary trip_data={tripPlanInfo} />
+          ) : (
+            <div className="flex items-center justify-center w-full h-full">
+              <h1 className="text-neutral-500 font-medium">
+                Trip plan will be showing here
+              </h1>
+            </div>
+          )}
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

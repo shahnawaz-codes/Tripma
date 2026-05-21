@@ -20,7 +20,7 @@ type Message = {
   content: string;
   ui?: string;
 };
-export const ChatBox = () => {
+export const ChatBox = ({ setTripPlanInfo }: { setTripPlanInfo: (tripPlan: TripPlan) => void }) => {
   const { user } = useUser();
   const userImage = user?.imageUrl;
   const saveTripMutation = useMutation(api.trips.saveNewTrip);
@@ -33,7 +33,6 @@ export const ChatBox = () => {
     },
   ]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  // const [finalTrip, setFinalTrip] = useState<TripPlan | null>(null);
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,8 +60,6 @@ export const ChatBox = () => {
           });
           if (res.status == 200) {
             const tripData = res?.data?.trip_plan || res?.data;
-            // setFinalTrip(tripData);
-
             const hotelWithImage = await generateImgForHotels(tripData?.hotels);
             const itineraryWithImage = await generateImgForactivities(
               tripData?.itinerary,
@@ -72,7 +69,7 @@ export const ChatBox = () => {
               hotels: hotelWithImage,
               itinerary: itineraryWithImage,
             };
-            console.log(tripPlan);
+            setTripPlanInfo(tripPlan);
             // save to db
             const id = await saveTripMutation({
               tripPlan: tripPlan,

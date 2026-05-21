@@ -107,7 +107,7 @@ export async function POST(req: Request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-oss-120b:free",
+          model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
           messages: [
             {
               role: "system",
