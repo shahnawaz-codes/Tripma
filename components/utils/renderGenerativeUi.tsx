@@ -19,17 +19,17 @@ export const RenderGenerativeUi = ({
   tripId,
 }: RenderGenerativeUiProps) => {
   const router = useRouter();
-  
+
   if (!ui) return null;
   const commonProps = { sendMessage, isLoading };
   if (ui === "source") {
     return (
       <RenderOptions
         options={[
-          { label: "New York", icon: "🗽" },
-          { label: "London", icon: "💂" },
-          { label: "Tokyo", icon: "🗼" },
-          { label: "Paris", icon: "🥐" },
+          { label: "New York", icon: "🗽", badge: "US Hub" },
+          { label: "London", icon: "💂", badge: "Europe" },
+          { label: "Tokyo", icon: "🗼", badge: "Asia" },
+          { label: "Paris", icon: "🥐", badge: "Europe" },
         ]}
         {...commonProps}
       />
@@ -38,10 +38,10 @@ export const RenderGenerativeUi = ({
     return (
       <RenderOptions
         options={[
-          { label: "Maldives", icon: "🏖️" },
-          { label: "Swiss Alps", icon: "🏔️" },
-          { label: "Kyoto", icon: "⛩️" },
-          { label: "Bali", icon: "🌴" },
+          { label: "Maldives", icon: "🏖️", badge: "Tropical" },
+          { label: "Swiss Alps", icon: "🏔️", badge: "Alpine" },
+          { label: "Kyoto", icon: "⛩️", badge: "Cultural" },
+          { label: "Bali", icon: "🌴", badge: "Island" },
         ]}
         {...commonProps}
       />
@@ -50,9 +50,24 @@ export const RenderGenerativeUi = ({
     return (
       <RenderOptions
         options={[
-          { label: "Low", icon: "🎒", desc: "Backpacking" },
-          { label: "Moderate", icon: "🏨", desc: "Comfort" },
-          { label: "Luxury", icon: "💎", desc: "Premium" },
+          {
+            label: "Low",
+            icon: "🎒",
+            desc: "Affordable backpacking & saving",
+            badge: "$0-$50/day",
+          },
+          {
+            label: "Moderate",
+            icon: "🏨",
+            desc: "Comfortable mid-range hotels",
+            badge: "$50-$150/day",
+          },
+          {
+            label: "Luxury",
+            icon: "💎",
+            desc: "High-end premium experience",
+            badge: "$150+/day",
+          },
         ]}
         {...commonProps}
       />
@@ -61,10 +76,30 @@ export const RenderGenerativeUi = ({
     return (
       <RenderOptions
         options={[
-          { label: "Solo", icon: "👤", desc: "Just me" },
-          { label: "Couple", icon: "💑", desc: "Romantic" },
-          { label: "Family", icon: "👨‍👩‍👧‍👦", desc: "With kids" },
-          { label: "Friends", icon: "👯", desc: "Group trip" },
+          {
+            label: "Solo",
+            icon: "👤",
+            desc: "Just me traveling solo",
+            badge: "1 Person",
+          },
+          {
+            label: "Couple",
+            icon: "💑",
+            desc: "Romantic trip for two",
+            badge: "2 People",
+          },
+          {
+            label: "Family",
+            icon: "👨‍👩‍👧‍👦",
+            desc: "Trip with kids & family",
+            badge: "3-5 People",
+          },
+          {
+            label: "Friends",
+            icon: "👯",
+            desc: "Adventure with group",
+            badge: "5+ People",
+          },
         ]}
         {...commonProps}
       />
@@ -75,10 +110,30 @@ export const RenderGenerativeUi = ({
     return (
       <RenderOptions
         options={[
-          { label: "Nature", icon: "🌲" },
-          { label: "Culture", icon: "🏛️" },
-          { label: "Food", icon: "🍜" },
-          { label: "Relaxation", icon: "🏖️" },
+          {
+            label: "Nature",
+            icon: "🌲",
+            desc: "Parks, hiking & scenery",
+            badge: "Outdoors",
+          },
+          {
+            label: "Culture",
+            icon: "🏛️",
+            desc: "History, museums & art",
+            badge: "Heritage",
+          },
+          {
+            label: "Food",
+            icon: "🍜",
+            desc: "Local culinary & cuisines",
+            badge: "Culinary",
+          },
+          {
+            label: "Relaxation",
+            icon: "🏖️",
+            desc: "Beaches, spas & leisure",
+            badge: "Leisure",
+          },
         ]}
         {...commonProps}
       />
@@ -87,8 +142,18 @@ export const RenderGenerativeUi = ({
     return (
       <RenderOptions
         options={[
-          { label: "Fast Paced", icon: "🏃", desc: "See it all" },
-          { label: "Relaxed", icon: "🐢", desc: "Take it easy" },
+          {
+            label: "Fast Paced",
+            icon: "🏃",
+            desc: "See it all, active pace",
+            badge: "Active",
+          },
+          {
+            label: "Relaxed",
+            icon: "🐢",
+            desc: "Take it easy, slow tempo",
+            badge: "Chill",
+          },
         ]}
         {...commonProps}
       />
