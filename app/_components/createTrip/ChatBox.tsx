@@ -20,7 +20,16 @@ type Message = {
   content: string;
   ui?: string;
 };
-export const ChatBox = ({ setTripPlanInfo }: { setTripPlanInfo: (tripPlan: TripPlan) => void }) => {
+type Props = {
+  setTripPlanInfo: (tripPlan: TripPlan) => void;
+  isGeneratingPlan: boolean;
+  setIsGeneratingPlan: (isGeneratingPlan: boolean) => void;
+};
+export const ChatBox = ({
+  setTripPlanInfo,
+  isGeneratingPlan,
+  setIsGeneratingPlan,
+}: Props) => {
   const { user } = useUser();
   const userImage = user?.imageUrl;
   const saveTripMutation = useMutation(api.trips.saveNewTrip);
@@ -32,7 +41,6 @@ export const ChatBox = ({ setTripPlanInfo }: { setTripPlanInfo: (tripPlan: TripP
         "Hi there! I'm your AI travel assistant. Let's plan an amazing trip together. Where would you like to go?",
     },
   ]);
-  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [userInput, setUserInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
