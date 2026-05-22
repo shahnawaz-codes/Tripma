@@ -35,3 +35,14 @@ export const getTripById = query({
     return await ctx.db.get("trips", agrs.tripId);
   },
 });
+
+export const deleteTrip = mutation({
+  args: {
+    tripId: v.id("trips"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.tripId);
+    return true;
+  },
+});
+
