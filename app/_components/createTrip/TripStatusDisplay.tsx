@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  Compass, 
-  Sparkles, 
-  CheckCircle2, 
-  Map, 
-  Building2, 
-  Utensils, 
+import {
+  Compass,
+  Sparkles,
+  CheckCircle2,
+  Map,
+  Building2,
+  Utensils,
   CalendarDays,
-  Globe
+  Globe,
 } from "lucide-react";
 
 interface TripStatusDisplayProps {
@@ -40,9 +40,6 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
   // Cycle through checklist steps
   useEffect(() => {
     if (status !== "generating") return;
-    
-    // Reset index on render
-    setCurrentStepIndex(0);
 
     const stepInterval = setInterval(() => {
       setCurrentStepIndex((prev) => {
@@ -59,9 +56,6 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
   // Cycle through travel tips
   useEffect(() => {
     if (status !== "generating") return;
-
-    // Reset index on render
-    setTipIndex(0);
 
     const tipInterval = setInterval(() => {
       setTipIndex((prev) => (prev + 1) % travelTips.length);
@@ -102,7 +96,9 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
               Your Next Journey Awaits
             </h2>
             <p className="text-neutral-500 dark:text-neutral-400 text-sm leading-relaxed">
-              Use the AI assistant on the left to start planning. Describe your dream destination, travel style, duration, and budget, and we'll craft a custom day-by-day plan right here.
+              Use the AI assistant on the left to start planning. Describe your
+              dream destination, travel style, duration, and budget, and we&apos;ll
+              craft a custom day-by-day plan right here.
             </p>
           </div>
 
@@ -112,19 +108,25 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
                 1
               </div>
-              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">Describe Idea</span>
+              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                Describe Idea
+              </span>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
                 2
               </div>
-              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">Refine Prefs</span>
+              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                Refine Prefs
+              </span>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
                 3
               </div>
-              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">Get Details</span>
+              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                Get Details
+              </span>
             </div>
           </div>
         </div>
@@ -192,24 +194,26 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
               const StepIcon = step.icon;
 
               return (
-                <div 
-                  key={step.id} 
+                <div
+                  key={step.id}
                   className={`flex items-center justify-between text-sm transition-all duration-300 ${
-                    isActive 
-                      ? "text-neutral-800 dark:text-neutral-100 font-medium" 
-                      : isCompleted 
-                        ? "text-neutral-450 dark:text-neutral-400" 
+                    isActive
+                      ? "text-neutral-800 dark:text-neutral-100 font-medium"
+                      : isCompleted
+                        ? "text-neutral-450 dark:text-neutral-400"
                         : "text-neutral-300 dark:text-neutral-700"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-1.5 rounded-lg transition-colors ${
-                      isActive 
-                        ? "bg-primary/10 text-primary" 
-                        : isCompleted 
-                          ? "bg-neutral-100 dark:bg-neutral-850 text-neutral-400" 
-                          : "bg-transparent text-neutral-200 dark:text-neutral-800"
-                    }`}>
+                    <div
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : isCompleted
+                            ? "bg-neutral-100 dark:bg-neutral-850 text-neutral-400"
+                            : "bg-transparent text-neutral-200 dark:text-neutral-800"
+                      }`}
+                    >
                       <StepIcon className="w-4 h-4" />
                     </div>
                     <span>{step.text}</span>
@@ -220,7 +224,11 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
                       >
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                       </motion.div>
@@ -240,10 +248,10 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
 
           {/* Micro Progress Bar */}
           <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-            <motion.div 
+            <motion.div
               className="h-full bg-gradient-to-r from-primary to-orange-500 rounded-full"
-              animate={{ 
-                width: `${((currentStepIndex + 0.5) / loadingSteps.length) * 100}%` 
+              animate={{
+                width: `${((currentStepIndex + 0.5) / loadingSteps.length) * 100}%`,
               }}
               transition={{ duration: 1.5, ease: "easeInOut" }}
             />
@@ -265,7 +273,7 @@ export function TripStatusDisplay({ status }: TripStatusDisplayProps) {
                 transition={{ duration: 0.4 }}
                 className="text-xs text-neutral-600 dark:text-neutral-400 italic font-medium leading-normal"
               >
-                "{travelTips[tipIndex]}"
+                &quot;{travelTips[tipIndex]}&quot;
               </motion.p>
             </AnimatePresence>
           </div>

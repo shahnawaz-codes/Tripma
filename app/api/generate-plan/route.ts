@@ -51,10 +51,9 @@ export async function POST(req: Request) {
       userId: userId || " ",
       requested: 1,
     });
-    console.log((decision.reason as any)?.remaining, hasPremiumAccess);
     if (
       decision.reason?.isRateLimit() &&
-      (decision.reason as any).remaining === 0 &&
+      (decision.reason).remaining === 0 &&
       !hasPremiumAccess
     ) {
       return NextResponse.json({
