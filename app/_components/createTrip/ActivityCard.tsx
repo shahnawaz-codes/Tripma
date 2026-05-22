@@ -87,7 +87,7 @@ export function ActivityCard({ activity, openMap, index }: ActivityCardProps) {
 
           <Button
             variant="outline"
-            className="w-full mt-2 rounded-xl border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-900 font-semibold py-5 transition-all group/btn"
+            className="w-full mt-2 rounded-xl cursor-pointer border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-900 font-semibold py-5 transition-all group/btn"
             onClick={() => {
               openMap(
                 activity.geo_coordinates.latitude,
