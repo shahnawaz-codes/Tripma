@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import React from "react";
 
 const MENU_LIST = [
-  { name: "Explore", path: "/explore" },
-  { name: "Community", path: "/community" },
+  { name: "Home", path: "/" },
+  { name: "My Trips", path: "/my-trips" },
   { name: "Pricing", path: "/pricing" },
 ];
 function Navbar() {
