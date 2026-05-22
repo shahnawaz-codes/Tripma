@@ -113,7 +113,7 @@ export const RenderGenerativeUi = ({
         <Button
           className="w-full mt-3 rounded-xl shadow-sm"
           disabled={isGeneratingPlan}
-          onClick={() => router.push(`/trips/${tripId}`)}
+          onClick={() => router.push(`/my-trips/${tripId}`)}
         >
           Save & View Trip Plan
         </Button>

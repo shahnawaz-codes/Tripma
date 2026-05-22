@@ -52,12 +52,16 @@ export async function POST(req: Request) {
       requested: 1,
     });
     console.log(decision.reason?.remaining, hasPremiumAccess);
-    if (decision.reason?.remaining == 0 && !hasPremiumAccess) {
-      return NextResponse.json({
-        resp: "No Free Credit Reaming ",
-        ui: "limit",
-      });
-    }
+    if (
+  decision.reason?.isRateLimit() &&
+  decision.reason.remaining === 0 &&
+  !hasPremiumAccess
+) {
+  return NextResponse.json({
+    resp: "No Free Credit Remaining",
+    ui: "limit",
+  });
+}
 
     // we only want role and content from message. not ui
     const normalizedMessages = message.map(

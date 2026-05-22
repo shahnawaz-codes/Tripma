@@ -21,7 +21,7 @@ export const getTrips = query({
   handler: async (ctx, args) => {
     const trips = await ctx.db.query("trips").filter((q) => {
       return q.eq(q.field("userEmail"), args.email);
-    });
+    }).order("desc").collect();
     return trips;
   },
 });
@@ -31,6 +31,7 @@ export const getTripById = query({
     tripId: v.id("trips"),
   },
   handler: async (ctx, agrs) => {
+    // return the document of the trip with the given tripId
     return await ctx.db.get("trips", agrs.tripId);
   },
 });
