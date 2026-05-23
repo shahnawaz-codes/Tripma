@@ -21,7 +21,7 @@ export const RenderGenerativeUi = ({
   const router = useRouter();
 
   if (!ui) return null;
-  const commonProps = { sendMessage, isLoading };
+  const commonProps = { sendMessage, isLoading, ui };
   if (ui === "source") {
     return (
       <RenderOptions
@@ -55,18 +55,21 @@ export const RenderGenerativeUi = ({
             icon: "🎒",
             desc: "Affordable backpacking & saving",
             badge: "$0-$50/day",
+            value: "Cheap",
           },
           {
             label: "Moderate",
             icon: "🏨",
             desc: "Comfortable mid-range hotels",
             badge: "$50-$150/day",
+            value: "Moderate",
           },
           {
             label: "Luxury",
             icon: "💎",
             desc: "High-end premium experience",
             badge: "$150+/day",
+            value: "Luxury",
           },
         ]}
         {...commonProps}
@@ -106,58 +109,6 @@ export const RenderGenerativeUi = ({
     );
   } else if (ui === "tripDuration") {
     return <DurationSelector onSelect={sendMessage} disabled={isLoading} />;
-  } else if (ui === "interests") {
-    return (
-      <RenderOptions
-        options={[
-          {
-            label: "Nature",
-            icon: "🌲",
-            desc: "Parks, hiking & scenery",
-            badge: "Outdoors",
-          },
-          {
-            label: "Culture",
-            icon: "🏛️",
-            desc: "History, museums & art",
-            badge: "Heritage",
-          },
-          {
-            label: "Food",
-            icon: "🍜",
-            desc: "Local culinary & cuisines",
-            badge: "Culinary",
-          },
-          {
-            label: "Relaxation",
-            icon: "🏖️",
-            desc: "Beaches, spas & leisure",
-            badge: "Leisure",
-          },
-        ]}
-        {...commonProps}
-      />
-    );
-  } else if (ui === "preferences") {
-    return (
-      <RenderOptions
-        options={[
-          {
-            label: "Fast Paced",
-            icon: "🏃",
-            desc: "See it all, active pace",
-            badge: "Active",
-          },
-          {
-            label: "Relaxed",
-            icon: "🐢",
-            desc: "Take it easy, slow tempo",
-            badge: "Chill",
-          },
-        ]}
-        {...commonProps}
-      />
-    );
   } else if (ui === "final") {
     return (
       <div className="mt-4 p-5 border border-primary/20 bg-primary/5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center w-full sm:w-[80%] lg:w-[300px]">

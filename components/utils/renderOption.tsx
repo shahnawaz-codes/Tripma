@@ -14,6 +14,7 @@ type RenderOptionsProps = {
   options: Option[];
   sendMessage: (text: string) => void;
   isLoading: boolean;
+  ui?: string;
 };
 
 const containerVariants: Variants = {
@@ -56,6 +57,7 @@ export const RenderOptions = ({
   options,
   sendMessage,
   isLoading,
+  ui,
 }: RenderOptionsProps) => {
   return (
     <motion.div
@@ -70,7 +72,17 @@ export const RenderOptions = ({
           variants={cardVariants}
           whileHover="hover"
           whileTap={{ scale: 0.98 }}
-          onClick={() => sendMessage(opt.badge ? `${opt.label} (${opt.badge})` : opt.label)}
+          onClick={() => {
+            if (ui === "groupSize") {
+              sendMessage(
+                opt.badge ? opt.badge : opt.label,
+              );
+            } else if (ui === "budget") {
+              sendMessage(opt?.badge ?? opt.label);
+            } else {
+              sendMessage(opt.label);
+            }
+          }}
           disabled={isLoading}
           className="relative flex flex-col items-center justify-center gap-1.5 p-4 rounded-2xl text-left bg-white/70 dark:bg-neutral-900/75 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800/60 shadow-sm hover:border-primary/40 dark:hover:border-primary/50 transition-colors duration-300 hover:shadow-md hover:shadow-primary/5 dark:hover:shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2 dark:focus:ring-offset-neutral-950"
         >

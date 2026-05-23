@@ -3,22 +3,19 @@ import { aj } from "../arcjet/route";
 import { auth } from "@clerk/nextjs/server";
 const PROMPT = `You are an AI Trip Planner Agent.
 
-Ask ONLY ONE question at a time and follow this exact order:
-
-1. source
-2. destination
-3. groupSize
-4. budget
-5. tripDuration
+You must collect all travel details step-by-step. Ask ONLY ONE question at a time in this exact order:
+1. source (departure location)
+2. destination (where they want to travel)
+3. groupSize (number of travelers)
+4. tripDuration (number of days)
+5. budget (budget tier or range)
 
 Rules:
-- Never skip steps.
-- Never ask multiple questions.
-- Wait for the user's answer before continuing.
-- If the answer is unclear, ask again for the same step.
-- Do NOT generate any itinerary or trip plan.
-- After collecting all details, only send a short summary/confirmation message.
-- When finished, return ui as "final".
+- NEVER skip a step. You must collect all 5 details.
+- Ask ONLY ONE question per turn. Never ask multiple questions.
+- If the user's answer to the current step is unclear, invalid, or a greeting (like "hi" or "hello"), you must ask for the current step again. Do not move to the next step.
+- Do NOT generate any itinerary or trip plan yet.
+- Once you have successfully collected and confirmed all 5 details, only then send a short summary/confirmation message and set ui to "final".
 
 Allowed ui values:
 "source"
@@ -28,11 +25,10 @@ Allowed ui values:
 "tripDuration"
 "final"
 
-Return ONLY valid JSON:
-
+You must reply with ONLY a valid JSON object matching this schema (no extra text, no conversational wrapper):
 {
-  "resp": "message",
-  "ui": "source/destination/groupSize/budget/tripDuration/final"
+  "resp": "Your response message to the user here",
+  "ui": "current_step_name_or_final"
 }`;
 // make a post req
 export async function POST(req: Request) {
@@ -69,37 +65,73 @@ export async function POST(req: Request) {
         content: msg.content,
       }),
     );
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    const models = [
+      "qwen/qwen-2.5-coder-32b-instruct:free",
+      "meta-llama/llama-3.1-8b-instruct:free",
+      "openai/gpt-oss-120b:free",
+      "google/gemma-2-9b-it:free",
+      "openrouter/free"
+    ];
 
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-oss-120b:free",
-          messages: [
-            {
-              role: "system",
-              content: PROMPT,
+    let response;
+    let data;
+    let success = false;
+
+    for (const model of models) {
+      try {
+        console.log(`Attempting plan generation with model: ${model}`);
+        response = await fetch(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json",
             },
-            ...normalizedMessages,
-          ],
-        }),
-      },
-    );
+            body: JSON.stringify({
+              model: model,
+              messages: [
+                {
+                  role: "system",
+                  content: PROMPT,
+                },
+                ...normalizedMessages,
+              ],
+            }),
+          },
+        );
 
-    const data = await response.json();
-    if (data.error) {
-      console.error("OpenRouter API Error:", data.error);
-      return NextResponse.json(data, { status: data.error.code || 500 });
+        data = await response.json();
+        if (response.ok && !data.error) {
+          success = true;
+          break;
+        }
+
+        console.warn(`Model ${model} failed with error:`, data?.error || data);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (err) {
+        console.error(`Error with model ${model}:`, err);
+      }
+    }
+
+    if (!success) {
+      console.error("All plan generation models failed.");
+      return NextResponse.json(
+        data || { error: "All models in fallback chain failed" },
+        { status: data?.error?.code || 500 }
+      );
     }
 
     let parsedData;
     try {
-      const content = data.choices?.[0]?.message?.content || "{}";
+      let content = data.choices?.[0]?.message?.content || "{}";
+
+      // Clean up reasoning/thinking/tool tags from the content
+      content = content.replace(/<think>[\s\S]*?<\/think>/gi, "");
+      content = content.replace(/<\/?think>/gi, "");
+      content = content.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, "");
+      content = content.replace(/<\/?tool_call>/gi, "");
+      content = content.replace(/<\/?\w+[^>]*>/g, ""); // strip other stray HTML/XML-like tags
 
       // Extract the FIRST valid JSON object using regex
       const jsonMatch = content.match(/\{[^{}]+\}/);
@@ -113,10 +145,22 @@ export async function POST(req: Request) {
         "Failed to parse AI response:",
         data.choices?.[0]?.message?.content,
       );
+
+      // Clean up raw response content for the fallback user message
+      let rawText = data.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
+      rawText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "");
+      rawText = rawText.replace(/<\/?think>/gi, "");
+      rawText = rawText.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, "");
+      rawText = rawText.replace(/<\/?tool_call>/gi, "");
+      rawText = rawText.replace(/<\/?\w+[^>]*>/g, "");
+
+      // Handle duplicate output blocks common in reasoning models
+      const lines = rawText.split("\n").map((l: string) => l.trim()).filter(Boolean);
+      const uniqueLines = Array.from(new Set(lines));
+      const cleanText = uniqueLines.join("\n");
+
       parsedData = {
-        resp:
-          data.choices?.[0]?.message?.content ||
-          "Sorry, I couldn't understand that.",
+        resp: cleanText,
         ui: "source",
       };
     }
