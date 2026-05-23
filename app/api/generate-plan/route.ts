@@ -66,10 +66,12 @@ export async function POST(req: Request) {
       }),
     );
     const models = [
-      "qwen/qwen-2.5-coder-32b-instruct:free",
-      "meta-llama/llama-3.1-8b-instruct:free",
+      "deepseek/deepseek-v4-flash:free",
+      "qwen/qwen3-coder:free",
+      "google/gemma-4-31b-it:free",
+      "openai/gpt-oss-20b:free",
       "openai/gpt-oss-120b:free",
-      "google/gemma-2-9b-it:free",
+      "z-ai/glm-4.5-air:free",
       "openrouter/free"
     ];
 

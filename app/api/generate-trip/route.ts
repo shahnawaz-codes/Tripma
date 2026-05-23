@@ -88,10 +88,11 @@ export async function POST(req: Request) {
 
     const models = [
       "meta-llama/llama-3.3-70b-instruct:free",
-      "qwen/qwen-2.5-coder-32b-instruct:free",
+      "google/gemma-4-31b-it:free",
+      "qwen/qwen3-coder:free",
       "openai/gpt-oss-120b:free",
-      "google/gemma-2-9b-it:free",
-      "meta-llama/llama-3.1-8b-instruct:free",
+      "openai/gpt-oss-20b:free",
+      "deepseek/deepseek-v4-flash:free",
       "openrouter/free"
     ];
 
