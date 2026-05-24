@@ -42,6 +42,7 @@ export const ChatBox = ({
     },
   ]);
   const [userInput, setUserInput] = useState<string>("");
+  const [tripGenerated, setTripGenerated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -57,44 +58,52 @@ export const ChatBox = ({
   }, [messages]);
 
   //---------Generate plan: call() trigger when msgs have final ui
-  useEffect(() => {
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg.ui === "final") {
-      async function generateFinalTripPlan() {
-        try {
-          setIsGeneratingPlan(true);
-          const res = await axios.post("/api/generate-trip", {
-            message: messages,
-          });
-          if (res.status == 200) {
-            const tripData = res?.data?.trip_plan || res?.data;
-            const hotelWithImage = await generateImgForHotels(tripData?.hotels);
-            const itineraryWithImage = await generateImgForactivities(
-              tripData?.itinerary,
-            );
-            const tripPlan = {
-              ...tripData,
-              hotels: hotelWithImage,
-              itinerary: itineraryWithImage,
-            };
-            setTripPlanInfo(tripPlan);
-            // save to db
-            const id = await saveTripMutation({
-              tripPlan: tripPlan,
-              userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
-            });
-            console.log("saved trip with id:", id);
-            setTripId(id);
-          }
-        } catch (error) {
-          console.log("something wrong while generating trip", error);
-        } finally {
-          setIsGeneratingPlan(false);
+  async function generateFinalTripPlan() {
+    try {
+      setIsGeneratingPlan(true);
+      setTripGenerated(true);
+      const res = await axios.post("/api/generate-trip", {
+        message: messages,
+      });
+      if (res.status == 200) {
+        const tripData = res?.data?.trip_plan || res?.data;
+        const hotelWithImage = await generateImgForHotels(tripData?.hotels);
+        const itineraryWithImage = await generateImgForactivities(
+          tripData?.itinerary,
+        );
+        const tripPlan = {
+          ...tripData,
+          hotels: hotelWithImage,
+          itinerary: itineraryWithImage,
+        };
+        setTripPlanInfo(tripPlan);
+        // save to db
+        const id = await saveTripMutation({
+          tripPlan: tripPlan,
+          userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
+        });
+        console.log("saved trip with id:", id);
+        setTripId(id);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 429) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content:
+                "You’ve used all free trip generations. Upgrade to continue.",
+              ui: "limit",
+            },
+          ]);
         }
       }
-      generateFinalTripPlan();
+      console.log("something wrong while generating trip", error);
+    } finally {
+      setIsGeneratingPlan(false);
     }
-  }, [messages, user?.primaryEmailAddress?.emailAddress, saveTripMutation]);
+  }
   // call ai endpoint
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
@@ -135,6 +144,8 @@ export const ChatBox = ({
     isLoading,
     isGeneratingPlan,
     tripId,
+    generateFinalTripPlan,
+   tripGenerated,
   };
 
   return (
@@ -178,7 +189,9 @@ export const ChatBox = ({
                 <div className="w-8 h-8 mt-1 bg-primary/10 rounded-full flex shrink-0 items-center justify-center">
                   <Bot className="w-4 h-4 text-primary" />
                 </div>
-                <div className={`bg-white border border-gray-100 text-gray-800 p-3 px-4 rounded-2xl rounded-tl-sm shadow-sm ${msg.ui ? "w-full max-w-full lg:max-w-none" : "max-w-[80%]"}`}>
+                <div
+                  className={`bg-white border border-gray-100 text-gray-800 p-3 px-4 rounded-2xl rounded-tl-sm shadow-sm ${msg.ui ? "w-full max-w-full lg:max-w-none" : "max-w-[80%]"}`}
+                >
                   <p className="text-sm leading-relaxed">{msg.content}</p>
                   {msg.ui && (
                     <RenderGenerativeUi

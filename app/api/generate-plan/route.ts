@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { aj } from "../arcjet/route";
-import { auth } from "@clerk/nextjs/server";
+
 const PROMPT = `You are an AI Trip Planner Agent.
 
 You must collect all travel details step-by-step. Ask ONLY ONE question at a time in this exact order:
@@ -41,22 +40,6 @@ export async function POST(req: Request) {
         status: false,
       });
     }
-    const { userId, has } = await auth();
-    const hasPremiumAccess = has({ plan: "monthly" });
-    const decision = await aj.protect(req, {
-      userId: userId || " ",
-      requested: 1,
-    });
-    if (
-      decision.reason?.isRateLimit() &&
-      decision.reason.remaining === 0 &&
-      !hasPremiumAccess
-    ) {
-      return NextResponse.json({
-        resp: "No Free Credit Remaining",
-        ui: "limit",
-      });
-    }
 
     // we only want role and content from message. not ui
     const normalizedMessages = message.map(
@@ -66,8 +49,10 @@ export async function POST(req: Request) {
       }),
     );
     const models = [
-      "meta-llama/llama-3.3-70b-instruct:free",
-      "qwen/qwen3-coder:free",
+      // "meta-llama/llama-3.3-70b-instruct:free",
+      // "qwen/qwen3-coder:free",
+      "google/gemini-3-flash-preview",
+      "google/gemini-2.5-flash-lite",
       "google/gemma-4-31b-it:free",
       "openai/gpt-oss-120b:free",
       "openai/gpt-oss-20b:free",
@@ -94,6 +79,9 @@ export async function POST(req: Request) {
             },
             body: JSON.stringify({
               model: model,
+              response_format: {
+                type: "json_object",
+              },
               messages: [
                 {
                   role: "system",

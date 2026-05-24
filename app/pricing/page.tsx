@@ -1,5 +1,11 @@
 import { PricingTable } from "@clerk/nextjs";
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pricing & Plans",
+  description: "Choose the perfect plan for your travel planning needs. Choose standard, premium, or enterprise plans to build your personalized travel itineraries with AI.",
+};
 
 const page = () => {
   return (
