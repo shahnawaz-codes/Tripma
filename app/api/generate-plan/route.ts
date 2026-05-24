@@ -66,8 +66,10 @@ export async function POST(req: Request) {
       }),
     );
     const models = [
-      "meta-llama/llama-3.3-70b-instruct:free",
-      "qwen/qwen3-coder:free",
+      "google/gemini-3-flash-preview",
+      "google/gemini-2.5-flash-lite",
+      "google/gemini-2.5-flash",
+      "google/gemini-3.1-flash-lite",
       "google/gemma-4-31b-it:free",
       "openai/gpt-oss-120b:free",
       "openai/gpt-oss-20b:free",

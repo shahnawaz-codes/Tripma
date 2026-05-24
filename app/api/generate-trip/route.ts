@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { aj } from "../arcjet/route";
+import { auth } from "@clerk/nextjs/server";
 
 const FINAL_PROMPT = `
 You are an expert AI Travel Planner. Generate a comprehensive travel plan based on the user's travel details.
@@ -71,6 +73,26 @@ export async function POST(req: Request) {
         status: false,
       });
     }
+    const { userId, has } = await auth();
+    const hasPremiumAccess = has({ plan: "monthly" });
+    const decision = await aj.protect(req, {
+      userId: userId || " ",
+      requested: 1,
+    });
+    if (
+      decision.reason?.isRateLimit() &&
+      decision.reason.remaining === 0 &&
+      !hasPremiumAccess
+    ) {
+      return NextResponse.json(
+        {
+          error: "No Free Credit Remaining",
+          limitReached: true,
+        },
+        { status: 429 },
+      );
+    }
+
     const normalizedMessages = message.map(
       (msg: { role: string; content: string }) => ({
         role: msg.role,
@@ -81,18 +103,22 @@ export async function POST(req: Request) {
     // Append a final user trigger to make sure the model generates the structured output
     normalizedMessages.push({
       role: "user",
-      content: "Based on all the details collected in our conversation history above, please generate the complete travel plan now following the requested JSON schema. Do not leave the hotels or itinerary arrays empty; populate them with realistic, detailed information matching the destination, budget, duration, group size, and origin.",
+      content:
+        "Based on all the details collected in our conversation history above, please generate the complete travel plan now following the requested JSON schema. Do not leave the hotels or itinerary arrays empty; populate them with realistic, detailed information matching the destination, budget, duration, group size, and origin.",
     });
 
     console.log("Sending messages to OpenRouter:", normalizedMessages);
 
     const models = [
-      "meta-llama/llama-3.3-70b-instruct:free",
+      "google/gemini-3-flash-preview",
+      "google/gemini-2.5-flash-lite",
+      "google/gemini-2.5-flash",
+      "google/gemini-3.1-flash-lite",
       "google/gemma-4-31b-it:free",
       "qwen/qwen3-coder:free",
       "openai/gpt-oss-120b:free",
       "openai/gpt-oss-20b:free",
-      "openrouter/free"
+      "openrouter/free",
     ];
 
     let response;
@@ -138,7 +164,10 @@ export async function POST(req: Request) {
           content = content.replace(/<\/?\w+[^>]*>/g, ""); // strip other stray HTML/XML-like tags
 
           // Store a last resort fallback message from the first model that gave a non-empty text response
-          const lines = content.split("\n").map((l: string) => l.trim()).filter(Boolean);
+          const lines = content
+            .split("\n")
+            .map((l: string) => l.trim())
+            .filter(Boolean);
           const uniqueLines = Array.from(new Set(lines));
           const cleanText = uniqueLines.join("\n");
           if (cleanText && !lastResortFallback) {
@@ -161,17 +190,28 @@ export async function POST(req: Request) {
                   success = true;
                   break;
                 } else {
-                  console.warn(`Model ${model} returned JSON but it is missing 'hotels' or 'itinerary' fields:`, tempParsed);
+                  console.warn(
+                    `Model ${model} returned JSON but it is missing 'hotels' or 'itinerary' fields:`,
+                    tempParsed,
+                  );
                 }
               }
             } catch (e) {
-              console.warn(`Model ${model} returned invalid JSON:`, jsonMatch[0]);
+              console.warn(
+                `Model ${model} returned invalid JSON:`,
+                jsonMatch[0],
+              );
             }
           } else {
-            console.warn(`Model ${model} response did not contain a JSON object.`);
+            console.warn(
+              `Model ${model} response did not contain a JSON object.`,
+            );
           }
         } else {
-          console.warn(`Model ${model} failed with error:`, data?.error || data);
+          console.warn(
+            `Model ${model} failed with error:`,
+            data?.error || data,
+          );
         }
 
         // Wait 1 second before trying the fallback model to prevent fast concurrent rate limits
@@ -189,7 +229,7 @@ export async function POST(req: Request) {
         console.error("All models in the fallback chain failed.");
         return NextResponse.json(
           data || { error: "All models in fallback chain failed" },
-          { status: data?.error?.code || 500 }
+          { status: data?.error?.code || 500 },
         );
       }
     }
