@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🗺️ AI Trip Planner
 
-## Getting Started
+A high-performance, interactive **AI-powered Trip Planner** built using Next.js, Convex, Clerk, and Arcjet. This application guides users through a chat-based flow using **Generative UI** to collect travel preferences, dynamically generating highly detailed daily itineraries, curated hotel stays, and interactive mapping coordinates.
 
-First, run the development server:
+---
 
+## 🚀 Technical Highlights (Recruiter's Quick-View)
+* **Advanced AI Fallback Orchestration**: Integrates a robust self-healing LLM chain via **OpenRouter** that cascades through multiple models (LLaMA-3.3, Gemma-4, Qwen-3, GPT-OSS) to guarantee structured, valid JSON outputs.
+* **Interactive Generative UI**: Leverages stateful React components rendering directly inside the chat flow to gather trip details (destination, duration, budget, group size) organically.
+* **3D Globe Mapping & Geo-Plotting**: Integrates **MapLibre GL** and **React Map GL** to render custom markers, interactive tooltips, and geographic activity pins on a spherical 3D globe.
+* **Enterprise-Grade Rate Limiting**: Uses **Arcjet** for token-bucket rate limiting (2 generation credits per 24 hours) with plan checking (`monthly` subscription checks via Clerk Auth) to protect the backend and control LLM API expenses.
+* **Low-Latency Real-Time Database**: Uses **Convex** as the backend database, ensuring instant document synchronization, serverless execution, and type-safe schema constraints.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+| Layer | Technology | Key Role & Capabilities |
+|---|---|---|
+| **Frontend Framework** | **Next.js 16 (App Router)** & **React 19** | Dynamic page rendering, directory-based routing, server actions, and layout isolation. |
+| **Backend & Database** | **Convex Backend** | Serverless real-time data layer with type-safe query/mutation schemas and automatic scaling. |
+| **Authentication** | **Clerk Auth** | Multi-tenant auth, profile mapping, protected route middleware, and subscription metadata. |
+| **Security & Shield** | **Arcjet Next.js SDK** | Token-bucket rate limiting, bot protection, and credit allocation checking. |
+| **AI Processing** | **OpenRouter SDK / Gemini API** | Prioritized model fallback, system instruction tuning, and strict JSON output parsing. |
+| **Interactive Maps** | **MapLibre GL & React Map GL** | Voyager-style map tiles, custom SVG interactive markers, and 3D Globe projection. |
+| **Styling & Motion** | **Tailwind CSS v4**, **Shadcn UI**, **Motion** | Fluid micro-animations, theme-tailored layout tokens, and interactive skeleton states. |
+| **State Management** | **Zustand** | Minimalist, type-safe global client state management. |
+
+---
+
+## 🧠 Core Engineering & Systems Design
+
+### 1. Interactive Generative UI Chatflow
+Instead of static input form spreadsheets, the application utilizes a stateful chat interface. As the conversation flows, the system injects custom React inputs directly into the chat stream:
+* **Interactive Badges**: Renders quick-clickable cards for popular departure and arrival destinations.
+* **Visual Tiers**: Displays distinct graphical cards with descriptions for Budget (`Low`, `Moderate`, `Luxury`) and Group Size (`Solo`, `Couple`, `Family`, `Friends`) utilizing CSS scale-up effects.
+* **Custom Calendar Widget**: Renders a dedicated duration selection widget inside the scrollable view.
+
+### 2. Self-Healing LLM Fallback Chain (`/api/generate-trip`)
+To prevent app failures caused by model timeouts, rate limits, or malformed text output, the backend handles trip generation using a multi-model fallback chain:
+1. **Fallback List**: Chains `meta-llama/llama-3.3-70b-instruct:free`, `google/gemma-4-31b-it:free`, `qwen/qwen3-coder:free`, etc.
+2. **Tag Cleansing**: Automatically strips XML reasoning/thinking tags (e.g. `<think>...</think>`).
+3. **Regex JSON Extractor**: Extracts objects matching the strict target schema (containing `hotels` and `itinerary` sub-arrays) even if models wrap the response in markdown blocks.
+4. **Resort Defaulting**: Gracefully falls back to a structural text template if all JSON parses fail, ensuring zero downtime.
+
+### 3. API Route Rate-Limiting & Credit Controls
+To protect endpoints from abuse, infinite loops, and heavy API bills:
+* Instantiates an **Arcjet token-bucket rule** inside the backend routes.
+* Dynamically checks if the authenticated user has a `monthly` plan configured in their Clerk metadata.
+* Free users are limited to 2 generation credits, refilling every 24 hours. When limits are reached, the app presents a premium upsell overlay directing users to the pricing page.
+
+### 4. 3D Globe Activity Mapping
+Provides visual itinerary coordinates directly in the browser:
+* Sets MapLibre projection mode to `globe` for a realistic spherical representation.
+* Traverses the dynamic `tripPlan` document in real-time to locate coordinates.
+* Renders custom SVG marker pins containing green status indicators.
+* Displays a detailed popup overlay on hover, revealing name, cost, rating, and description.
+
+---
+
+## 🗄️ Database Schema (`convex/schema.ts`)
+The application defines a strict, type-safe schema ensuring data consistency:
+
+* **`users` Table**:
+  * Fields: `name` (string), `imgUrl` (string), `email` (string), `subscription` (optional string).
+  * Index: `by_email` for sub-millisecond profile querying.
+* **`trips` Table**:
+  * Fields: `userEmail` (string), and `tripPlan` (object mapping:
+    * `destination` (string), `duration` (string), `origin` (string), `budget` (string), `group_size` (string).
+    * `hotels`: Array of objects (containing name, address, price, description, rating, and coordinates).
+    * `itinerary`: Array of day objects (containing day number, day plan summary, best visit times, and nested `activities` objects).
+
+---
+
+## 🛠️ Local Development & Installation
+
+### Prerequisites
+* Node.js (v20 or higher)
+* npm, pnpm, or bun
+
+### 1. Clone & Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repository-url>
+cd ai-trip-planner
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
+Create a `.env.local` file in the root directory:
+```env
+# Clerk Authentication Configuration
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Convex Database url
+NEXT_PUBLIC_CONVEX_URL=your_convex_url_endpoint
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Security & API Credentials
+ARCJET_KEY=your_arcjet_key
+OPENROUTER_API_KEY=your_openrouter_api_key
+```
 
-## Learn More
+### 3. Run the Convex Backend
+Convex functions must run in development mode. In a separate terminal session, execute:
+```bash
+npx convex dev
+```
+*This synchronizes your local mutations/queries with Convex and sets up the serverless backend environment.*
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Start the Frontend Dev Server
+Run the development environment locally:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to view the application.
