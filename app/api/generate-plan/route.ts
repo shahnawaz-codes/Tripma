@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     });
     if (
       decision.reason?.isRateLimit() &&
-      (decision.reason).remaining === 0 &&
+      decision.reason.remaining === 0 &&
       !hasPremiumAccess
     ) {
       return NextResponse.json({
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       "openai/gpt-oss-120b:free",
       "openai/gpt-oss-20b:free",
       "z-ai/glm-4.5-air:free",
-      "openrouter/free"
+      "openrouter/free",
     ];
 
     let response;
@@ -118,7 +118,10 @@ export async function POST(req: Request) {
           content = content.replace(/<\/?\w+[^>]*>/g, ""); // strip other stray HTML/XML-like tags
 
           // Store a last resort fallback message from the first model that gave a non-empty text response
-          const lines = content.split("\n").map((l: string) => l.trim()).filter(Boolean);
+          const lines = content
+            .split("\n")
+            .map((l: string) => l.trim())
+            .filter(Boolean);
           const uniqueLines = Array.from(new Set(lines));
           const cleanText = uniqueLines.join("\n");
           if (cleanText && !lastResortFallback) {
@@ -137,27 +140,41 @@ export async function POST(req: Request) {
               if (tempParsed && typeof tempParsed === "object") {
                 if (tempParsed.resp || tempParsed.ui) {
                   parsedData = {
-                    resp: tempParsed.resp || "Let's continue planning your trip.",
+                    resp:
+                      tempParsed.resp || "Let's continue planning your trip.",
                     ui: tempParsed.ui || "source",
                   };
                   success = true;
                   break;
                 } else {
-                  console.warn(`Model ${model} returned JSON but it is missing 'resp' or 'ui' fields:`, tempParsed);
+                  console.warn(
+                    `Model ${model} returned JSON but it is missing 'resp' or 'ui' fields:`,
+                    tempParsed,
+                  );
                 }
               }
             } catch (e) {
-              console.warn(`Model ${model} returned invalid JSON:`, jsonMatch[0]);
+              console.warn(
+                `Model ${model} returned invalid JSON:`,
+                jsonMatch[0],
+              );
             }
           } else {
-            console.warn(`Model ${model} response did not contain a JSON object.`);
+            console.warn(
+              `Model ${model} response did not contain a JSON object.`,
+            );
           }
         } else {
-          console.warn(`Model ${model} failed with error:`, data?.error || data);
+          console.warn(
+            `Model ${model} failed with error:`,
+            data?.error || data,
+          );
         }
 
         // Wait 1 second before trying the fallback model to prevent fast concurrent rate limits
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const retryAfter = data?.metadata?.retry_after_seconds || 3;
+
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
       } catch (err) {
         console.error(`Error with model ${model}:`, err);
       }
@@ -171,7 +188,7 @@ export async function POST(req: Request) {
         console.error("All plan generation models failed.");
         return NextResponse.json(
           data || { error: "All models in fallback chain failed" },
-          { status: data?.error?.code || 500 }
+          { status: data?.error?.code || 500 },
         );
       }
     }
