@@ -10,14 +10,24 @@ interface GlobeMapProps {
   className?: string;
 }
 
-export default function GlobeMap({ tripData, style, className }: GlobeMapProps) {
+export default function GlobeMap({
+  tripData,
+  style,
+  className,
+}: GlobeMapProps) {
   // Find the first valid activity or hotel geo-coordinates to center the map
-  const firstCoords = tripData?.itinerary
-    ?.flatMap((day) => day.activities)
-    ?.find((activity) => activity?.geo_coordinates?.latitude && activity?.geo_coordinates?.longitude)
-    ?.geo_coordinates || 
-    tripData?.hotels?.find((hotel) => hotel?.geo_coordinates?.latitude && hotel?.geo_coordinates?.longitude)
-    ?.geo_coordinates;
+  const firstCoords =
+    tripData?.itinerary
+      ?.flatMap((day) => day.activities)
+      ?.find(
+        (activity) =>
+          activity?.geo_coordinates?.latitude &&
+          activity?.geo_coordinates?.longitude,
+      )?.geo_coordinates ||
+    tripData?.hotels?.find(
+      (hotel) =>
+        hotel?.geo_coordinates?.latitude && hotel?.geo_coordinates?.longitude,
+    )?.geo_coordinates;
 
   const initialLongitude = firstCoords?.longitude ?? 50;
   const initialLatitude = firstCoords?.latitude ?? 25;
@@ -38,7 +48,11 @@ export default function GlobeMap({ tripData, style, className }: GlobeMapProps) 
       >
         {tripData?.itinerary?.flatMap((day) =>
           day.activities
-            .filter((activity) => activity?.geo_coordinates?.latitude && activity?.geo_coordinates?.longitude)
+            .filter(
+              (activity) =>
+                activity?.geo_coordinates?.latitude &&
+                activity?.geo_coordinates?.longitude,
+            )
             .map((activity, idx) => (
               <Marker
                 key={`${day.day}-${idx}`}
@@ -52,11 +66,13 @@ export default function GlobeMap({ tripData, style, className }: GlobeMapProps) 
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shrink-0" />
                     <span>{activity.place_name}</span>
                   </div>
-                  
+
                   {/* Tooltip on hover */}
                   <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center pointer-events-none z-50">
                     <div className="bg-neutral-900/95 dark:bg-neutral-800/95 text-white text-[10px] p-2.5 rounded-xl shadow-xl w-48 border border-neutral-700/50 backdrop-blur-sm">
-                      <p className="font-bold text-xs mb-0.5 leading-tight text-white">{activity.place_name}</p>
+                      <p className="font-bold text-xs mb-0.5 leading-tight text-white">
+                        {activity.place_name}
+                      </p>
                       {activity.place_details && (
                         <p className="text-neutral-300 font-normal line-clamp-3 leading-snug text-[9px] mt-1">
                           {activity.place_details}
@@ -68,10 +84,9 @@ export default function GlobeMap({ tripData, style, className }: GlobeMapProps) 
                   </div>
                 </div>
               </Marker>
-            ))
+            )),
         )}
       </Map>
     </div>
   );
 }
-
