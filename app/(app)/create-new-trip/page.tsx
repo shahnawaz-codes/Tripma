@@ -17,11 +17,7 @@ const WorldGlobe = dynamic(
   () => import("@/app/_components/createTrip/WorldGlobe"),
   {
     ssr: false, // ← critical, skips server render
-    loading: () => (
-      <div className="flex items-center justify-center w-full h-full text-neutral-500">
-        Loading map...
-      </div>
-    ),
+    loading: () => <div className="flex items-center justify-center w-full h-full text-neutral-500">Loading map...</div>,
   },
 );
 
@@ -32,7 +28,7 @@ const CreateTrip = () => {
   return (
     <div className="w-full h-[calc(100vh-70px)] overflow-hidden flex">
       {/* chat box */}
-      <div className="w-full lg:w-145 xl:w-155 shrink-0 h-full bg-white border-r border-neutral-200 dark:border-neutral-800">
+      <div className="w-full lg:w-[580px] xl:w-[620px] shrink-0 h-full bg-white border-r border-neutral-200 dark:border-neutral-800">
         <ChatBox
           setTripPlanInfo={setTripPlanInfo}
           setIsGeneratingPlan={setIsGeneratingPlan}
@@ -65,17 +61,10 @@ const CreateTrip = () => {
                   size="icon"
                   className="w-12 h-12 rounded-full shadow-md border border-neutral-200/50 dark:border-neutral-800/50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md hover:scale-105 transition-all duration-200 text-neutral-700 dark:text-neutral-300 hover:text-primary dark:hover:text-primary cursor-pointer flex items-center justify-center"
                 >
-                  {isGlobe ? (
-                    <AirplayIcon className="w-5 h-5" />
-                  ) : (
-                    <Globe2 className="w-5 h-5" />
-                  )}
+                  {isGlobe ? <AirplayIcon className="w-5 h-5" /> : <Globe2 className="w-5 h-5" />}
                 </Button>
               </HoverCardTrigger>
-              <HoverCardContent
-                align="end"
-                className="w-60 p-3 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800/50 shadow-xl rounded-xl"
-              >
+              <HoverCardContent align="end" className="w-60 p-3 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800/50 shadow-xl rounded-xl">
                 <div className="space-y-1.5">
                   <h4 className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
                     {isGlobe ? (
@@ -91,9 +80,10 @@ const CreateTrip = () => {
                     )}
                   </h4>
                   <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal">
-                    {isGlobe
+                    {isGlobe 
                       ? "View your detailed day-by-day travel plan, curated hotels, and lists of activities."
-                      : "Visualize your trip routes and activities on an interactive 3D Globe map."}
+                      : "Visualize your trip routes and activities on an interactive 3D Globe map."
+                    }
                   </p>
                 </div>
               </HoverCardContent>

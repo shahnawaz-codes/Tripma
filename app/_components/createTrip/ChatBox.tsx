@@ -145,7 +145,7 @@ export const ChatBox = ({
     isGeneratingPlan,
     tripId,
     generateFinalTripPlan,
-   tripGenerated,
+    tripGenerated,
   };
 
   return (
@@ -189,9 +189,7 @@ export const ChatBox = ({
                 <div className="w-8 h-8 mt-1 bg-primary/10 rounded-full flex shrink-0 items-center justify-center">
                   <Bot className="w-4 h-4 text-primary" />
                 </div>
-                <div
-                  className={`bg-white border border-gray-100 text-gray-800 p-3 px-4 rounded-2xl rounded-tl-sm shadow-sm ${msg.ui ? "w-full max-w-full lg:max-w-none" : "max-w-[80%]"}`}
-                >
+                <div className={`bg-white border border-gray-100 text-gray-800 p-3 px-4 rounded-2xl rounded-tl-sm shadow-sm ${msg.ui ? "w-full max-w-full lg:max-w-none" : "max-w-[80%]"}`}>
                   <p className="text-sm leading-relaxed">{msg.content}</p>
                   {msg.ui && (
                     <RenderGenerativeUi
