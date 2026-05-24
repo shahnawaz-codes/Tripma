@@ -66,11 +66,11 @@ export async function POST(req: Request) {
       }),
     );
     const models = [
-      "deepseek/deepseek-v4-flash:free",
+      "meta-llama/llama-3.3-70b-instruct:free",
       "qwen/qwen3-coder:free",
       "google/gemma-4-31b-it:free",
-      "openai/gpt-oss-20b:free",
       "openai/gpt-oss-120b:free",
+      "openai/gpt-oss-20b:free",
       "z-ai/glm-4.5-air:free",
       "openrouter/free"
     ];
@@ -78,6 +78,8 @@ export async function POST(req: Request) {
     let response;
     let data;
     let success = false;
+    let parsedData = null;
+    let lastResortFallback = null;
 
     for (const model of models) {
       try {
@@ -105,11 +107,56 @@ export async function POST(req: Request) {
 
         data = await response.json();
         if (response.ok && !data.error) {
-          success = true;
-          break;
+          let content = data.choices?.[0]?.message?.content || "";
+          console.log(`Model ${model} raw content:`, content);
+
+          // Clean up reasoning/thinking/tool tags from the content
+          content = content.replace(/<think>[\s\S]*?<\/think>/gi, "");
+          content = content.replace(/<\/?think>/gi, "");
+          content = content.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, "");
+          content = content.replace(/<\/?tool_call>/gi, "");
+          content = content.replace(/<\/?\w+[^>]*>/g, ""); // strip other stray HTML/XML-like tags
+
+          // Store a last resort fallback message from the first model that gave a non-empty text response
+          const lines = content.split("\n").map((l: string) => l.trim()).filter(Boolean);
+          const uniqueLines = Array.from(new Set(lines));
+          const cleanText = uniqueLines.join("\n");
+          if (cleanText && !lastResortFallback) {
+            lastResortFallback = {
+              resp: cleanText,
+              ui: "source",
+            };
+          }
+
+          // Extract JSON object using regex to handle prepended/appended text
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              const tempParsed = JSON.parse(jsonMatch[0]);
+              // We got a JSON object! Let's ensure it has the required fields.
+              if (tempParsed && typeof tempParsed === "object") {
+                if (tempParsed.resp || tempParsed.ui) {
+                  parsedData = {
+                    resp: tempParsed.resp || "Let's continue planning your trip.",
+                    ui: tempParsed.ui || "source",
+                  };
+                  success = true;
+                  break;
+                } else {
+                  console.warn(`Model ${model} returned JSON but it is missing 'resp' or 'ui' fields:`, tempParsed);
+                }
+              }
+            } catch (e) {
+              console.warn(`Model ${model} returned invalid JSON:`, jsonMatch[0]);
+            }
+          } else {
+            console.warn(`Model ${model} response did not contain a JSON object.`);
+          }
+        } else {
+          console.warn(`Model ${model} failed with error:`, data?.error || data);
         }
 
-        console.warn(`Model ${model} failed with error:`, data?.error || data);
+        // Wait 1 second before trying the fallback model to prevent fast concurrent rate limits
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (err) {
         console.error(`Error with model ${model}:`, err);
@@ -117,54 +164,16 @@ export async function POST(req: Request) {
     }
 
     if (!success) {
-      console.error("All plan generation models failed.");
-      return NextResponse.json(
-        data || { error: "All models in fallback chain failed" },
-        { status: data?.error?.code || 500 }
-      );
-    }
-
-    let parsedData;
-    try {
-      let content = data.choices?.[0]?.message?.content || "{}";
-
-      // Clean up reasoning/thinking/tool tags from the content
-      content = content.replace(/<think>[\s\S]*?<\/think>/gi, "");
-      content = content.replace(/<\/?think>/gi, "");
-      content = content.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, "");
-      content = content.replace(/<\/?tool_call>/gi, "");
-      content = content.replace(/<\/?\w+[^>]*>/g, ""); // strip other stray HTML/XML-like tags
-
-      // Extract the FIRST valid JSON object using regex
-      const jsonMatch = content.match(/\{[^{}]+\}/);
-      if (jsonMatch) {
-        parsedData = JSON.parse(jsonMatch[0]);
+      if (lastResortFallback) {
+        console.warn("Using last resort fallback response from a model.");
+        parsedData = lastResortFallback;
       } else {
-        throw new Error("No JSON object found in response");
+        console.error("All plan generation models failed.");
+        return NextResponse.json(
+          data || { error: "All models in fallback chain failed" },
+          { status: data?.error?.code || 500 }
+        );
       }
-    } catch (e) {
-      console.error(
-        "Failed to parse AI response:",
-        data.choices?.[0]?.message?.content,
-      );
-
-      // Clean up raw response content for the fallback user message
-      let rawText = data.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
-      rawText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "");
-      rawText = rawText.replace(/<\/?think>/gi, "");
-      rawText = rawText.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, "");
-      rawText = rawText.replace(/<\/?tool_call>/gi, "");
-      rawText = rawText.replace(/<\/?\w+[^>]*>/g, "");
-
-      // Handle duplicate output blocks common in reasoning models
-      const lines = rawText.split("\n").map((l: string) => l.trim()).filter(Boolean);
-      const uniqueLines = Array.from(new Set(lines));
-      const cleanText = uniqueLines.join("\n");
-
-      parsedData = {
-        resp: cleanText,
-        ui: "source",
-      };
     }
 
     return NextResponse.json(parsedData);
