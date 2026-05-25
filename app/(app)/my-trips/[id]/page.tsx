@@ -16,19 +16,18 @@ const WorldGlobe = dynamic(
     ssr: false, // critical to prevent window/document undefined issues during SSR
     loading: () => (
       <div className="flex items-center justify-center w-full h-full text-neutral-500 bg-neutral-50/50 dark:bg-neutral-900/50 backdrop-blur-sm">
-        <span className="text-sm font-medium animate-pulse">Loading map...</span>
+        <span className="text-sm font-medium animate-pulse">
+          Loading map...
+        </span>
       </div>
     ),
-  }
+  },
 );
 
 export default function TripId() {
   const params: any = useParams();
   const [showMapOnMobile, setShowMapOnMobile] = useState(false);
-
   const data = useQuery(api.trips.getTripById, { tripId: params.id });
-
-  console.log(data);
   if (!data) {
     return <DetailSkeleton />;
   }
@@ -73,4 +72,3 @@ export default function TripId() {
     </div>
   );
 }
-
