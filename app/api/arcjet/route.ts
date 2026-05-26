@@ -1,31 +1,16 @@
-import arcjet, { tokenBucket } from "@arcjet/next";
+import arcjet, { fixedWindow, tokenBucket } from "@arcjet/next";
 import { NextResponse } from "next/server";
 
 export const aj = arcjet({
-  key: process.env.ARCJET_KEY!, // Get your site key from https://app.arcjet.com
+  key: process.env.ARCJET_KEY!,
   rules: [
-    // Create a token bucket rate limit. Other algorithms are supported.
-    tokenBucket({
+    // Create a fixed window to rate limit.
+    fixedWindow({
       mode: "LIVE", // will block requests. Use "DRY_RUN" to log only
       characteristics: ["userId"], // track requests by a custom user ID
-      refillRate: 2, // refill * tokens per interval
-      interval: 60 * 60 * 24, // refill every * seconds
-      capacity: 2, // bucket maximum capacity of * tokens
+      window: "1d",
+      max: 2,
+      
     }),
   ],
 });
-
-export async function GET(req: Request) {
-  const userId = "user123"; // Replace with your authenticated user ID
-  const decision = await aj.protect(req, { userId, requested: 5 }); // Deduct 5 tokens from the bucket
-  console.log("Arcjet decision", decision);
-
-  if (decision.isDenied()) {
-    return NextResponse.json(
-      { error: "Too Many Requests", reason: decision.reason },
-      { status: 429 },
-    );
-  }
-
-  return NextResponse.json({ message: "Hello world" });
-}
