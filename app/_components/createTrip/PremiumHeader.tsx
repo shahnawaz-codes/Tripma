@@ -1,10 +1,39 @@
-import { Calendar, Wallet, Users } from "lucide-react";
+"use client";
+import { Calendar, Wallet, Users, Download } from "lucide-react";
 import { TripPlan } from "@/types/trip";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 export function PremiumHeader({ trip }: { trip: TripPlan }) {
   const originName = trip.origin.split(",")[0];
   const destName = trip.destination.split("(")[0].trim();
-
+  const params = useParams();
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const tripId = params?.id;
+  console.log("id", tripId);
+  const handleExportPdf = async () => {
+    try {
+      setIsExporting(true);
+      const res = await fetch("/api/export-pdf", {
+        method: "POST",
+        body: JSON.stringify({
+          tripId: tripId,
+        }),
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `trip-${trip.destination}.pdf`;
+        a.click();
+      }
+    } catch (error) {
+      console.log("something goes wrong", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
   return (
     <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 md:p-10 shadow-sm mt-4">
       <div className="relative z-10">
@@ -39,6 +68,15 @@ export function PremiumHeader({ trip }: { trip: TripPlan }) {
               {trip.group_size}
             </span>
           </div>
+
+          <button
+            disabled={isExporting}
+            onClick={handleExportPdf}
+            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white dark:bg-orange-500 dark:hover:bg-orange-600 px-5 py-2.5 rounded-xl transition-all font-semibold text-sm cursor-pointer shadow-sm hover:scale-105 active:scale-95 ml-auto"
+          >
+            <Download className="w-4 h-4" />
+            <span>{isExporting ? "Exporting..." : "Export PDF"}</span>
+          </button>
         </div>
       </div>
     </div>
