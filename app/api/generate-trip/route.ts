@@ -75,10 +75,20 @@ export async function POST(req: Request) {
     }
     // rate limit
     const { userId, has } = await auth();
+    if (!userId) {
+      NextResponse.json(
+        {
+          error: "Anauthorized",
+        },
+        {
+          status: 401,
+        },
+      );
+    }
     const hasPremiumAccess = has({ plan: "monthly" });
+
     const decision = await aj.protect(req, {
       userId: userId || " ",
-      requested: 1,
     });
     if (
       decision.reason?.isRateLimit() &&
@@ -101,7 +111,6 @@ export async function POST(req: Request) {
         content: msg.content,
       }),
     );
-
     // Append a final user trigger to make sure the model generates the structured output
     normalizedMessages.push({
       role: "user",
@@ -122,7 +131,6 @@ export async function POST(req: Request) {
       "openai/gpt-oss-20b:free",
       "openrouter/free",
     ];
-
     let response;
     let data;
     let success = false;
