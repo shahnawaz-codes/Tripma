@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { DurationSelector } from "@/app/_components/createTrip/DurationSelector";
 import { RenderOptions } from "./renderOption";
-import { Sparkles, Loader2, CheckCircle2, AlertTriangle, ArrowRight } from "lucide-react";
+import {
+  Sparkles,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 
@@ -40,7 +46,7 @@ export const RenderGenerativeUi = ({
       setLoadingStep(0);
       interval = setInterval(() => {
         setLoadingStep((prev) =>
-          prev < loadingSteps.length - 1 ? prev + 1 : prev
+          prev < loadingSteps.length - 1 ? prev + 1 : prev,
         );
       }, 3000);
     }
@@ -151,7 +157,8 @@ export const RenderGenerativeUi = ({
               Generation Limit Reached
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              You've used all your free credits. Please upgrade your plan to continue crafting unlimited customized itineraries.
+              You've used all your free credits. Please upgrade your plan to
+              continue crafting unlimited customized itineraries.
             </p>
           </div>
           <Button
@@ -188,9 +195,11 @@ export const RenderGenerativeUi = ({
             </div>
             {/* Elegant loading progress line */}
             <div className="w-full bg-neutral-200 dark:bg-neutral-800 h-1 rounded-full overflow-hidden mt-2">
-              <div 
-                className="bg-gradient-to-r from-primary to-orange-500 h-full rounded-full transition-all duration-1000" 
-                style={{ width: `${((loadingStep + 1) / loadingSteps.length) * 100}%` }}
+              <div
+                className="bg-gradient-to-r from-primary to-orange-500 h-full rounded-full transition-all duration-1000"
+                style={{
+                  width: `${((loadingStep + 1) / loadingSteps.length) * 100}%`,
+                }}
               />
             </div>
           </div>
@@ -217,7 +226,8 @@ export const RenderGenerativeUi = ({
               Adventure is Ready!
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              Your customized travel schedule, recommended hotels, and activity maps have been created successfully.
+              Your customized travel schedule, recommended hotels, and activity
+              maps have been created successfully.
             </p>
           </div>
           <Button
@@ -242,7 +252,8 @@ export const RenderGenerativeUi = ({
             Preferences Captured!
           </h3>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-            All your options are collected. Ready to generate your custom AI travel plan?
+            All your options are collected. Ready to generate your custom AI
+            travel plan?
           </p>
         </div>
         <Button
