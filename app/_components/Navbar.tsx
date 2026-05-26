@@ -18,7 +18,7 @@ function Navbar() {
       {/* logo */}
       <Link href={"/"} className="flex items-center gap-2 cursor-pointer">
         <Image src="/logo.svg" alt="logo" width={30} height={30} />
-        <span className="text-2xl font-bold">Tripma</span>
+        <span className="text-2xl font-bold">Tripma AI</span>
       </Link>
 
       {/* menu list  */}
