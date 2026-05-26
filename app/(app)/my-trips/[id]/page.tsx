@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -8,6 +8,7 @@ import { Map, List } from "lucide-react";
 import Itinerary from "@/app/_components/createTrip/Itinerary";
 import { api } from "@/convex/_generated/api";
 import { DetailSkeleton } from "@/app/_components/my-trips/DetailSkeleton";
+import { Id } from "@/convex/_generated/dataModel";
 
 // Dynamically import WorldGlobe map component with SSR disabled
 const WorldGlobe = dynamic(
@@ -24,10 +25,14 @@ const WorldGlobe = dynamic(
   },
 );
 
-export default function TripId() {
-  const params: any = useParams();
+export default function TripId({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const [showMapOnMobile, setShowMapOnMobile] = useState(false);
-  const data = useQuery(api.trips.getTripById, { tripId: params.id });
+  const data = useQuery(api.trips.getTripById, { tripId: id as Id<"trips"> });
   if (!data) {
     return <DetailSkeleton />;
   }
