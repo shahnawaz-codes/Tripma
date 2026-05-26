@@ -4,12 +4,18 @@ import { mutation, query } from "./_generated/server";
 export const saveNewTrip = mutation({
   args: {
     tripPlan: v.any(),
-    userEmail: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    const email = identity.email;
+
     const tripId = await ctx.db.insert("trips", {
       tripPlan: args.tripPlan,
-      userEmail: args.userEmail,
+      userEmail: email ?? "",
     });
     return tripId;
   },
@@ -19,9 +25,11 @@ export const getTrips = query({
     email: v.string(),
   },
   handler: async (ctx, args) => {
-    const trips = await ctx.db.query("trips").filter((q) => {
-      return q.eq(q.field("userEmail"), args.email);
-    }).order("desc").collect();
+    const trips = await ctx.db
+      .query("trips")
+      .withIndex("by_email", (q) => q.eq("userEmail", args.email))
+      .order("desc")
+      .collect();
     return trips;
   },
 });
@@ -45,4 +53,3 @@ export const deleteTrip = mutation({
     return true;
   },
 });
-
