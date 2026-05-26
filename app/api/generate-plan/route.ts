@@ -41,23 +41,6 @@ export async function POST(req: Request) {
         status: false,
       });
     }
-    const { userId, has } = await auth();
-    const hasPremiumAccess = has({ plan: "monthly" });
-    const decision = await aj.protect(req, {
-      userId: userId || " ",
-      requested: 1,
-    });
-    if (
-      decision.reason?.isRateLimit() &&
-      decision.reason.remaining === 0 &&
-      !hasPremiumAccess
-    ) {
-      return NextResponse.json({
-        resp: "No Free Credit Remaining",
-        ui: "limit",
-      });
-    }
-
     // we only want role and content from message. not ui
     const normalizedMessages = message.map(
       (msg: { role: string; content: string }) => ({

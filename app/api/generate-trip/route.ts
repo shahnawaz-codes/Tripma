@@ -73,6 +73,7 @@ export async function POST(req: Request) {
         status: false,
       });
     }
+    // rate limit
     const { userId, has } = await auth();
     const hasPremiumAccess = has({ plan: "monthly" });
     const decision = await aj.protect(req, {
@@ -93,6 +94,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // fix msg
     const normalizedMessages = message.map(
       (msg: { role: string; content: string }) => ({
         role: msg.role,
