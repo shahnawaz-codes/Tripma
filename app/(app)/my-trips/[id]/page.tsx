@@ -25,17 +25,15 @@ const WorldGlobe = dynamic(
   },
 );
 
-export default function TripId({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function TripId() {
+  const params = useParams<{ id: Id<"trips"> }>();
+  const { id } = params;
   const [showMapOnMobile, setShowMapOnMobile] = useState(false);
-  const data = useQuery(api.trips.getTripById, { tripId: id as Id<"trips"> });
+  const data = useQuery(api.trips.getTripById, { tripId: id });
   if (!data) {
     return <DetailSkeleton />;
   }
+  console.log("shareData", data);
 
   return (
     <div className="relative flex flex-col lg:flex-row w-full lg:h-[calc(100vh-73px)] overflow-hidden bg-white dark:bg-neutral-950">
