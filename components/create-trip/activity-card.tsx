@@ -18,6 +18,7 @@ export function ActivityCard({ activity, openMap, index }: ActivityCardProps) {
     <div className="flex flex-col overflow-hidden rounded-3xl bg-neutral-50/50 dark:bg-neutral-900/30 border border-neutral-200/50 dark:border-neutral-800/50 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(255,255,255,0.02)] hover:-translate-y-1 duration-300 w-full group h-full">
       <div className="h-52 shrink-0 relative overflow-hidden bg-neutral-200 dark:bg-neutral-800 m-2 rounded-2xl">
         <Image
+          unoptimized
           src={
             activity.place_image_url ||
             "https://placehold.co/600x400.png?text=Image+Unavailable"
