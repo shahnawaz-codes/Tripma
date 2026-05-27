@@ -1,5 +1,5 @@
 import { Itinerary } from "@/types/trip";
-import { fetchImage } from "@/utils/fetchImage";
+import { fetchImage } from "@/lib/fetch-image";
 
 export const generateImgForactivities = async (itinerary: Itinerary[]) => {
   return await Promise.all(

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { DurationSelector } from "@/app/_components/createTrip/DurationSelector";
-import { RenderOptions } from "./renderOption";
+import { DurationSelector } from "@/components/create-trip/duration-selector";
+import { RenderOptions } from "./render-option";
 import {
   Sparkles,
   Loader2,

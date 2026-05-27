@@ -4,11 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { nanoid } from "nanoid";
 import slugify from "slugify";
 import { Textarea } from "@/components/ui/textarea";
-import { RenderGenerativeUi } from "@/components/utils/renderGenerativeUi";
+import { RenderGenerativeUi } from "@/components/generative/render-generative-ui";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { generateImgForHotels } from "@/lib/generateImgForHotels";
-import { generateImgForactivities } from "@/lib/generateImgForactivities";
+import { generateImgForHotels } from "@/lib/generate-img-hotels";
+import { generateImgForactivities } from "@/lib/generate-img-activities";
 import { TripPlan } from "@/types/trip";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
@@ -23,19 +23,20 @@ type Message = {
   ui?: string;
 };
 type Props = {
-  setTripPlanInfo: (tripPlan: TripPlan) => void;
   isGeneratingPlan: boolean;
   setIsGeneratingPlan: (isGeneratingPlan: boolean) => void;
+  tripId: Id<"trips"> | undefined;
+  setTripId: (tripId: Id<"trips">) => void;
 };
 export const ChatBox = ({
-  setTripPlanInfo,
   isGeneratingPlan,
   setIsGeneratingPlan,
+  tripId,
+  setTripId,
 }: Props) => {
   const { user } = useUser();
   const userImage = user?.imageUrl;
   const saveTripMutation = useMutation(api.trips.saveNewTrip);
-  const [tripId, setTripId] = useState<Id<"trips">>();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -78,7 +79,6 @@ export const ChatBox = ({
           hotels: hotelWithImage,
           itinerary: itineraryWithImage,
         };
-        setTripPlanInfo(tripPlan);
 
         const shareId =
           slugify(tripData.destination, { lower: true }) + "-" + nanoid(5);

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Navbar from "./_components/Navbar";
+import Navbar from "@/components/navbar";
 import { useUser } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";

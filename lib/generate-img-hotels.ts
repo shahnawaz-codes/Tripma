@@ -1,5 +1,5 @@
 import { Hotel } from "@/types/trip";
-import { fetchImage } from "@/utils/fetchImage";
+import { fetchImage } from "@/lib/fetch-image";
 
 export const generateImgForHotels = async (hotels: Hotel[]) => {
   return await Promise.all(

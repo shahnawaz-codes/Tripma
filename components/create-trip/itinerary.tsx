@@ -1,8 +1,8 @@
 "use client";
 import { TripPlan } from "@/types/trip";
-import { PremiumHeader } from "./PremiumHeader";
-import { FeaturedStays } from "./FeaturedStays";
-import { DailyItinerary } from "./DailyItinerary";
+import { PremiumHeader } from "./premium-header";
+import { FeaturedStays } from "./featured-stays";
+import { DailyItinerary } from "./daily-itinerary";
 
 export function Itinerary({ trip_data }: { trip_data: TripPlan }) {
   const trip = trip_data;
@@ -14,7 +14,7 @@ export function Itinerary({ trip_data }: { trip_data: TripPlan }) {
   
   return (
     <div className="w-full h-full overflow-y-auto p-4 sm:p-6 pb-20 max-w-7xl mx-auto space-y-16">
-      <PremiumHeader trip={trip} />
+      <PremiumHeader trip={trip}  />
       <section className="px-2 md:px-6">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white">

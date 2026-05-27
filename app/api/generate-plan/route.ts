@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { aj } from "../arcjet/route";
+import { aj } from "@/lib/arcjet";
 import { auth } from "@clerk/nextjs/server";
 const PROMPT = `You are an AI Trip Planner Agent.
 

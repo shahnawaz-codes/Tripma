@@ -3,7 +3,7 @@
 import { Timeline } from "@/components/ui/timeline";
 import { Clock } from "lucide-react";
 import { Itinerary } from "@/types/trip";
-import { ActivityCard } from "./ActivityCard";
+import { ActivityCard } from "./activity-card";
 
 interface DailyItineraryProps {
   itinerary: Itinerary[];

@@ -1,4 +1,4 @@
-import { PDF_template } from "@/components/utils/pdfTemplate";
+import { PDF_template } from "@/components/pdf/pdf-template";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { fetchQuery } from "convex/nextjs";

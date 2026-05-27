@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Id } from "@/convex/_generated/dataModel";
 import { Itinerary, TripPlan } from "@/types/trip";
-import MyTripsSkeleton from "@/app/_components/my-trips/Skeleton";
+import MyTripsSkeleton from "@/components/my-trips/skeleton";
 
 export default function MyTrips() {
   const { user, isLoaded } = useUser();
