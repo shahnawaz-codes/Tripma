@@ -4,6 +4,7 @@ import { mutation, query } from "./_generated/server";
 export const saveNewTrip = mutation({
   args: {
     tripPlan: v.any(),
+    shareId: v.string(),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -16,6 +17,7 @@ export const saveNewTrip = mutation({
     const tripId = await ctx.db.insert("trips", {
       tripPlan: args.tripPlan,
       userEmail: email ?? "",
+      shareId: args.shareId,
     });
     return tripId;
   },
@@ -51,5 +53,18 @@ export const deleteTrip = mutation({
   handler: async (ctx, args) => {
     await ctx.db.delete(args.tripId);
     return true;
+  },
+});
+
+export const shareTrip = query({
+  args: {
+    shareId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const trip = await ctx.db
+      .query("trips")
+      .filter((q) => q.eq(q.field("shareId"), args.shareId))
+      .collect();
+    return trip[0];
   },
 });
