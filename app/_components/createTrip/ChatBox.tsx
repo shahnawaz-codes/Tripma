@@ -1,6 +1,8 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { nanoid } from "nanoid";
+import slugify from "slugify";
 import { Textarea } from "@/components/ui/textarea";
 import { RenderGenerativeUi } from "@/components/utils/renderGenerativeUi";
 import { api } from "@/convex/_generated/api";
@@ -57,7 +59,7 @@ export const ChatBox = ({
     return () => clearTimeout(timeoutId);
   }, [messages]);
 
-  //---------Generate plan: call() trigger when msgs have final ui
+  //-------- generate Trip
   async function generateFinalTripPlan() {
     try {
       setIsGeneratingPlan(true);
@@ -77,9 +79,13 @@ export const ChatBox = ({
           itinerary: itineraryWithImage,
         };
         setTripPlanInfo(tripPlan);
+
+        const shareId =
+          slugify(tripData.destination, { lower: true }) + "-" + nanoid(5);
         // save to db
         const id = await saveTripMutation({
           tripPlan: tripPlan,
+          shareId: shareId,
         });
         console.log("saved trip with id:", id);
         setTripId(id);
