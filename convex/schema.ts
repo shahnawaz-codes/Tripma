@@ -10,6 +10,7 @@ export default defineSchema({
   }).index("by_email", ["email"]),
   trips: defineTable({
     userEmail: v.string(),
+    shareId: v.optional(v.string()),
     tripPlan: v.object({
       destination: v.string(),
       duration: v.string(),
