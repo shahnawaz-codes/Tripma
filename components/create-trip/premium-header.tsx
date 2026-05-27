@@ -1,19 +1,51 @@
 "use client";
-import { Calendar, Wallet, Users, Download } from "lucide-react";
+import { Calendar, Wallet, Users, Download, Share } from "lucide-react";
 import { TripPlan } from "@/types/trip";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Id } from "@/convex/_generated/dataModel";
 
-export function PremiumHeader({ trip }: { trip: TripPlan }) {
+export function PremiumHeader({
+  trip,
+  shareId,
+  tripId,
+}: {
+  trip: TripPlan;
+  shareId: string;
+  tripId: Id<"trips">;
+}) {
   const originName = trip.origin.split(",")[0];
   const destName = trip.destination.split("(")[0].trim();
   const params = useParams();
   const [isExporting, setIsExporting] = useState<boolean>(false);
-  const tripId = params?.id;
-  console.log("id", tripId);
+  /**
+   * window.location.origin -> returns actual orgin of application -> domain-hostname-port
+   */
+  const shareUrl = `${window.location.origin}/trip/${shareId}`;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: trip.destination,
+        text: "Check out my AI trip!",
+        url: shareUrl,
+      });
+    } else {
+      // fallback if browser/device doesn't support navigator.share
+      await navigator.clipboard.writeText(shareUrl);
+    }
+  };
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+    `Check my trip: ${shareUrl}`,
+  )}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+    `Check my trip: ${shareUrl}`,
+  )}`;
+
   const handleExportPdf = async () => {
     try {
       setIsExporting(true);
+      console.log("tripid", tripId);
       const res = await fetch("/api/export-pdf", {
         method: "POST",
         body: JSON.stringify({
@@ -76,6 +108,13 @@ export function PremiumHeader({ trip }: { trip: TripPlan }) {
           >
             <Download className="w-4 h-4" />
             <span>{isExporting ? "Exporting..." : "Export PDF"}</span>
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white dark:bg-orange-500 dark:hover:bg-orange-600 px-5 py-2.5 rounded-xl transition-all font-semibold text-sm cursor-pointer shadow-sm hover:scale-105 active:scale-95 ml-auto"
+          >
+            <Share className="w-4 h-4" />
+            <span>Share</span>
           </button>
         </div>
       </div>

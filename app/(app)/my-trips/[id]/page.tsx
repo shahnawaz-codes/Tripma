@@ -5,14 +5,14 @@ import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { Map, List } from "lucide-react";
-import Itinerary from "@/app/_components/createTrip/Itinerary";
+import Itinerary from "@/components/create-trip/itinerary";
 import { api } from "@/convex/_generated/api";
-import { DetailSkeleton } from "@/app/_components/my-trips/DetailSkeleton";
+import { DetailSkeleton } from "@/components/my-trips/detail-skeleton";
 import { Id } from "@/convex/_generated/dataModel";
 
 // Dynamically import WorldGlobe map component with SSR disabled
 const WorldGlobe = dynamic(
-  () => import("@/app/_components/createTrip/WorldGlobe"),
+  () => import("@/components/create-trip/world-globe"),
   {
     ssr: false, // critical to prevent window/document undefined issues during SSR
     loading: () => (
@@ -43,7 +43,11 @@ export default function TripId() {
           showMapOnMobile ? "hidden lg:block" : "block"
         }`}
       >
-        <Itinerary trip_data={data.tripPlan} />
+        <Itinerary
+          tripId={data._id}
+          trip_data={data.tripPlan}
+          shareId={data.shareId as string}
+        />
       </div>
 
       {/* Right Column: Globe Map */}

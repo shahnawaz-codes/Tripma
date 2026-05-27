@@ -1,4 +1,4 @@
-import { getWikipediaImage } from "@/api/wikipedia";
+import { getWikipediaImage } from "@/lib/wikipedia";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
