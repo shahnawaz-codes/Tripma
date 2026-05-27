@@ -30,19 +30,26 @@ export async function POST(req: NextRequest) {
     const page = await browser.newPage();
 
     //Render the HTML template, wait for resources to finish loading, generate the PDF buffer
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" as any });
+    await page.setContent(htmlContent, { waitUntil: "load" });
 
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate: `<div style="font-size: 8px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif; width: 100%; text-align: right; padding-right: 15mm; color: #94a3b8; font-weight: 500;">AI TRIP PLANNER</div>`,
+      footerTemplate: `
+        <div style="font-size: 8px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif; width: 100%; display: flex; justify-content: space-between; padding-left: 15mm; padding-right: 15mm; color: #94a3b8; font-weight: 500;">
+          <span>Generated Itinerary</span>
+          <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
+        </div>
+      `,
       margin: {
         top: "15mm",
         right: "15mm",
-        bottom: "15mm",
+        bottom: "20mm",
         left: "15mm",
       },
     });
-
     return new NextResponse(pdfBuffer as any, {
       status: 200,
       headers: {
