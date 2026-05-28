@@ -29,10 +29,10 @@ export default function MyTrips() {
     user?.primaryEmailAddress?.emailAddress ||
     user?.emailAddresses?.[0]?.emailAddress;
 
-  // get all trips for the current user, or skip if email is not resolved yet
+  // get all trips for the current user, or skip if the user is not loaded/signed in yet
   const trips = useQuery(
     api.trips.getTrips,
-    userEmail ? { email: userEmail } : "skip",
+    isLoaded && user ? {} : "skip",
   );
 
   const deleteTripMutation = useMutation(api.trips.deleteTrip);
