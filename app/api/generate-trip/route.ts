@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     // rate limit
     const { userId, has } = await auth();
     if (!userId) {
-      NextResponse.json(
+      return NextResponse.json(
         {
           error: "Anauthorized",
         },
@@ -118,7 +118,6 @@ export async function POST(req: Request) {
         "Based on all the details collected in our conversation history above, please generate the complete travel plan now following the requested JSON schema. Do not leave the hotels or itinerary arrays empty; populate them with realistic, detailed information matching the destination, budget, duration, group size, and origin.",
     });
 
-    console.log("Sending messages to OpenRouter:", normalizedMessages);
 
     const models = [
       "google/gemini-3-flash-preview",
@@ -135,7 +134,6 @@ export async function POST(req: Request) {
     let data;
     let success = false;
     let parsedData = null;
-    let lastResortFallback = null;
 
     for (const model of models) {
       try {
@@ -173,19 +171,7 @@ export async function POST(req: Request) {
           content = content.replace(/<\/?tool_call>/gi, "");
           content = content.replace(/<\/?\w+[^>]*>/g, ""); // strip other stray HTML/XML-like tags
 
-          // Store a last resort fallback message from the first model that gave a non-empty text response
-          const lines = content
-            .split("\n")
-            .map((l: string) => l.trim())
-            .filter(Boolean);
-          const uniqueLines = Array.from(new Set(lines));
-          const cleanText = uniqueLines.join("\n");
-          if (cleanText && !lastResortFallback) {
-            lastResortFallback = {
-              resp: cleanText,
-              ui: "source",
-            };
-          }
+
 
           // Extract JSON object using regex to handle prepended/appended text
           const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -232,16 +218,11 @@ export async function POST(req: Request) {
     }
 
     if (!success) {
-      if (lastResortFallback) {
-        console.warn("Using last resort fallback response from a model.");
-        parsedData = lastResortFallback;
-      } else {
-        console.error("All models in the fallback chain failed.");
-        return NextResponse.json(
-          data || { error: "All models in fallback chain failed" },
-          { status: data?.error?.code || 500 },
-        );
-      }
+      console.error("All models in the fallback chain failed to generate a valid trip plan.");
+      return NextResponse.json(
+        data || { error: "All models in fallback chain failed" },
+        { status: data?.error?.code || 500 },
+      );
     }
 
     return NextResponse.json(parsedData);

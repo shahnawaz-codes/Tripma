@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
           message: error.message,
           data: error.response?.data,
         },
-        {
+      {
           status: error.response?.status || 500,
         },
       );

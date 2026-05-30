@@ -19,6 +19,7 @@ type RenderGenerativeUiProps = {
   tripId?: string;
   tripGenerated: boolean;
   generateFinalTripPlan: () => void;
+  generationError?: "limit" | "failed" | null;
 };
 export const RenderGenerativeUi = ({
   ui,
@@ -28,10 +29,10 @@ export const RenderGenerativeUi = ({
   tripId,
   tripGenerated,
   generateFinalTripPlan,
+  generationError,
 }: RenderGenerativeUiProps) => {
   const router = useRouter();
   const [loadingStep, setLoadingStep] = useState(0);
-
   const loadingSteps = [
     "Analyzing your preferences...",
     "Finding top-rated hotels...",
@@ -39,7 +40,7 @@ export const RenderGenerativeUi = ({
     "Mapping routes on the 3D globe...",
     "Finalizing your travel itinerary...",
   ];
-
+  // animated loading-bar
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isGeneratingPlan) {
@@ -146,29 +147,53 @@ export const RenderGenerativeUi = ({
     return <DurationSelector onSelect={sendMessage} disabled={isLoading} />;
   } else if (ui === "final") {
     // 1. Generation Failed State
-    if (tripGenerated && !tripId && !isGeneratingPlan) {
-      return (
-        <div className="w-full max-w-sm p-6 rounded-3xl border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/10 backdrop-blur-md shadow-lg flex flex-col items-center gap-4 text-center animate-in fade-in slide-in-from-bottom-4 duration-300 mt-4">
-          <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-full flex items-center justify-center text-red-500">
-            <AlertTriangle className="w-6 h-6 animate-bounce" />
+    if (tripGenerated && !isGeneratingPlan && !tripId) {
+      if (generationError === "limit") {
+        return (
+          <div className="w-full max-w-sm p-6 rounded-3xl border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/10 backdrop-blur-md shadow-lg flex flex-col items-center gap-4 text-center animate-in fade-in slide-in-from-bottom-4 duration-300 mt-4">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-full flex items-center justify-center text-red-500">
+              <AlertTriangle className="w-6 h-6 animate-bounce" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-bold text-neutral-950 dark:text-neutral-50 text-sm">
+                Generation Limit Reached
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                {"You've used all your free credits. Please upgrade your plan to"}
+                {" continue crafting unlimited customized itineraries."}
+              </p>
+            </div>
+            <Button
+              className="w-full mt-2 rounded-2xl py-5 font-bold shadow-md bg-gradient-to-r from-red-600 to-orange-600 text-white border-none hover:opacity-95 cursor-pointer"
+              onClick={() => router.push("/pricing")}
+            >
+              Upgrade to Premium
+            </Button>
           </div>
-          <div className="space-y-1.5">
-            <h3 className="font-bold text-neutral-950 dark:text-neutral-50 text-sm">
-              Generation Limit Reached
-            </h3>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              You've used all your free credits. Please upgrade your plan to
-              continue crafting unlimited customized itineraries.
-            </p>
+        );
+      } else {
+        return (
+          <div className="w-full max-w-sm p-6 rounded-3xl border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/10 backdrop-blur-md shadow-lg flex flex-col items-center gap-4 text-center animate-in fade-in slide-in-from-bottom-4 duration-300 mt-4">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-full flex items-center justify-center text-red-500">
+              <AlertTriangle className="w-6 h-6 animate-bounce" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-bold text-neutral-950 dark:text-neutral-50 text-sm">
+                Generation Failed
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                We encountered an error generating your trip plan. Please try again.
+              </p>
+            </div>
+            <Button
+              className="w-full mt-2 rounded-2xl py-5 font-bold shadow-md bg-gradient-to-r from-neutral-600 to-neutral-800 text-white border-none hover:opacity-95 cursor-pointer"
+              onClick={generateFinalTripPlan}
+            >
+              Retry Generation
+            </Button>
           </div>
-          <Button
-            className="w-full mt-2 rounded-2xl py-5 font-bold shadow-md bg-gradient-to-r from-red-600 to-orange-600 text-white border-none hover:opacity-95 cursor-pointer"
-            onClick={() => router.push("/pricing")}
-          >
-            Upgrade to Premium
-          </Button>
-        </div>
-      );
+        );
+      }
     }
 
     // 2. Active Generating State
