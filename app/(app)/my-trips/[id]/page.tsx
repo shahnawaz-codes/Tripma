@@ -9,7 +9,6 @@ import Itinerary from "@/components/create-trip/itinerary";
 import { api } from "@/convex/_generated/api";
 import { DetailSkeleton } from "@/components/my-trips/detail-skeleton";
 import { Id } from "@/convex/_generated/dataModel";
-
 // Dynamically import WorldGlobe map component with SSR disabled
 const WorldGlobe = dynamic(
   () => import("@/components/create-trip/world-globe"),
@@ -33,8 +32,6 @@ export default function TripId() {
   if (!data) {
     return <DetailSkeleton />;
   }
-  console.log("shareData", data);
-
   return (
     <div className="relative flex flex-col lg:flex-row w-full lg:h-[calc(100vh-73px)] overflow-hidden bg-white dark:bg-neutral-950">
       {/* Left Column: Itinerary Details */}

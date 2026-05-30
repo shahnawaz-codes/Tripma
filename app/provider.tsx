@@ -26,7 +26,7 @@ export default function Provider({
   useEffect(() => {
     user && storeUser();
   }, [user, storeUser]);
- 
+
   if (!isLoaded) {
     return (
       <div className="flex h-screen w-full items-center justify-center">

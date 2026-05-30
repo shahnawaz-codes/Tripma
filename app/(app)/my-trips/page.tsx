@@ -25,15 +25,8 @@ import MyTripsSkeleton from "@/components/my-trips/skeleton";
 
 export default function MyTrips() {
   const { user, isLoaded } = useUser();
-  const userEmail =
-    user?.primaryEmailAddress?.emailAddress ||
-    user?.emailAddresses?.[0]?.emailAddress;
-
   // get all trips for the current user, or skip if the user is not loaded/signed in yet
-  const trips = useQuery(
-    api.trips.getTrips,
-    isLoaded && user ? {} : "skip",
-  );
+  const trips = useQuery(api.trips.getTrips, isLoaded && user ? {} : "skip");
 
   const deleteTripMutation = useMutation(api.trips.deleteTrip);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -135,7 +128,7 @@ export default function MyTrips() {
 
       {/* Trips list or empty state */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        {trips.length === 0 ? (
+        {trips?.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-16 px-4 max-w-lg mx-auto">
             <div className="w-24 h-24 rounded-full bg-neutral-50 dark:bg-neutral-900/50 flex items-center justify-center mb-6 text-neutral-400 dark:text-neutral-600 border border-neutral-200/40 dark:border-neutral-800/30 relative shadow-inner">
               <Compass className="w-12 h-12 animate-[spin_12s_linear_infinite] text-primary/80" />
@@ -159,7 +152,7 @@ export default function MyTrips() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {trips.map((trip) => {
+            {trips?.map((trip) => {
               const hotelsCount = trip.tripPlan.hotels?.length || 0;
               let activitiesCount = 0;
               if (trip.tripPlan.itinerary) {
