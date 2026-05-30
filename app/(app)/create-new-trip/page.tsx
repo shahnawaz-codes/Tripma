@@ -5,7 +5,7 @@ import { TripPlan } from "@/types/trip";
 import Itinerary from "@/components/create-trip/itinerary";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { AirplayIcon, Globe2 } from "lucide-react";
+import { AirplayIcon, Globe2, Bot } from "lucide-react";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -33,10 +33,27 @@ const CreateTrip = () => {
   const data = useQuery(api.trips.getTripById, tripId ? { tripId } : "skip");
   const [isGlobe, setIsGlobe] = useState<boolean>(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [showPreviewOnMobile, setShowPreviewOnMobile] = useState(false);
+
+  // Auto-switch to the preview pane on mobile/tablet when generation starts or completes
+  useEffect(() => {
+    if (isGeneratingPlan) {
+      setShowPreviewOnMobile(true);
+    }
+  }, [isGeneratingPlan]);
+
+  useEffect(() => {
+    if (data) {
+      setShowPreviewOnMobile(true);
+    }
+  }, [data]);
+
   return (
-    <div className="w-full h-[calc(100vh-70px)] overflow-hidden flex">
+    <div className="w-full h-[calc(100vh-70px)] overflow-hidden flex relative">
       {/* chat box */}
-      <div className="w-full lg:w-[580px] xl:w-[620px] shrink-0 h-full bg-white border-r border-neutral-200 dark:border-neutral-800">
+      <div className={`w-full lg:w-[580px] xl:w-[620px] shrink-0 h-full bg-white border-r border-neutral-200 dark:border-neutral-800 ${
+        showPreviewOnMobile ? "hidden lg:block" : "block"
+      }`}>
         <ChatBox
           setIsGeneratingPlan={setIsGeneratingPlan}
           isGeneratingPlan={isGeneratingPlan}
@@ -46,7 +63,9 @@ const CreateTrip = () => {
       </div>
 
       {/* display map and area place  */}
-      <div className="hidden lg:block flex-1 bg-white dark:bg-neutral-950 overflow-hidden h-full relative">
+      <div className={`flex-1 bg-white dark:bg-neutral-950 overflow-hidden h-full relative ${
+        showPreviewOnMobile ? "block" : "hidden lg:block"
+      }`}>
         {isGeneratingPlan ? (
           <TripStatusDisplay key="generating" status="generating" />
         ) : data ? (
@@ -139,6 +158,35 @@ const CreateTrip = () => {
           </>
         )}
       </div>
+
+      {/* Floating responsive toggle button for mobile/tablet screens */}
+      {(data || isGeneratingPlan) && (
+        <button
+          onClick={() => setShowPreviewOnMobile(!showPreviewOnMobile)}
+          className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-neutral-900 hover:bg-neutral-850 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 px-5 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 text-sm font-semibold border border-white/10 dark:border-black/5 cursor-pointer backdrop-blur-md"
+        >
+          {showPreviewOnMobile ? (
+            <>
+              <Bot className="w-4 h-4 text-primary" />
+              <span>Show Chat</span>
+            </>
+          ) : isGeneratingPlan ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+              <span>Show Progress</span>
+            </>
+          ) : (
+            <>
+              {isGlobe ? (
+                <Globe2 className="w-4 h-4 text-primary" />
+              ) : (
+                <AirplayIcon className="w-4 h-4 text-primary" />
+              )}
+              <span>Show Plan</span>
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 };
