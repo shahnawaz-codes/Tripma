@@ -13,7 +13,9 @@ export const saveNewTrip = mutation({
     }
     const email = identity.email;
     if (!email) {
-      throw new Error("Email claim missing in JWT token. Please configure the Clerk JWT Template for Convex.");
+      throw new Error(
+        "Email claim missing in JWT token. Please configure the Clerk JWT Template for Convex.",
+      );
     }
 
     const tripId = await ctx.db.insert("trips", {
@@ -27,22 +29,29 @@ export const saveNewTrip = mutation({
 
 export const getTrips = query({
   args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: Please sign in to view your trips");
-    }
-    const email = identity.email;
-    if (!email) {
-      throw new Error("Email claim missing in JWT token. Please configure the Clerk JWT Template for Convex.");
-    }
 
-    const trips = await ctx.db
-      .query("trips")
-      .withIndex("by_email", (q) => q.eq("userEmail", email))
-      .order("desc")
-      .collect();
-    return trips;
+  handler: async (ctx) => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        throw new Error("Unauthorized: Please sign in to view your trips");
+      }
+      const email = identity.email;
+      if (!email) {
+        throw new Error(
+          "Email claim missing in JWT token. Please configure the Clerk Custom Session Fields for Convex.",
+        );
+      }
+
+      const trips = await ctx.db
+        .query("trips")
+        .withIndex("by_email", (q) => q.eq("userEmail", email))
+        .order("desc")
+        .collect();
+      return trips;
+    } catch (error) {
+      console.log("error while fetching trips", error);
+    }
   },
 });
 
@@ -50,8 +59,28 @@ export const getTripById = query({
   args: {
     tripId: v.id("trips"),
   },
+
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.tripId);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Please sign in to view your trips");
+    }
+    const email = identity.email;
+    if (!email) {
+      throw new Error(
+        "Email claim missing in JWT token. Please configure the Clerk Custom Session Fields for Convex.",
+      );
+    }
+    const trip = await ctx.db.get(args.tripId);
+    if (!trip) {
+      throw new Error("Trip not found");
+    }
+    if (trip.userEmail !== email) {
+      throw new Error(
+        "Unauthorized: You do not have permission to delete this trip",
+      );
+    }
+    return trip;
   },
 });
 
@@ -60,25 +89,33 @@ export const deleteTrip = mutation({
     tripId: v.id("trips"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: Please sign in");
-    }
-    const email = identity.email;
-    if (!email) {
-      throw new Error("Email claim missing in JWT token. Please configure the Clerk JWT Template for Convex.");
-    }
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        throw new Error("Unauthorized: Please sign in");
+      }
+      const email = identity.email;
+      if (!email) {
+        throw new Error(
+          "Email claim missing in JWT token. Please configure the Clerk JWT Template for Convex.",
+        );
+      }
 
-    const trip = await ctx.db.get(args.tripId);
-    if (!trip) {
-      throw new Error("Trip not found");
-    }
-    if (trip.userEmail !== email) {
-      throw new Error("Unauthorized: You do not have permission to delete this trip");
-    }
+      const trip = await ctx.db.get(args.tripId);
+      if (!trip) {
+        throw new Error("Trip not found");
+      }
+      if (trip.userEmail !== email) {
+        throw new Error(
+          "Unauthorized: You do not have permission to delete this trip",
+        );
+      }
 
-    await ctx.db.delete(args.tripId);
-    return true;
+      await ctx.db.delete(args.tripId);
+      return true;
+    } catch (error) {
+      console.log("something wrong while deleting", error);
+    }
   },
 });
 
@@ -89,8 +126,8 @@ export const shareTrip = query({
   handler: async (ctx, args) => {
     const trip = await ctx.db
       .query("trips")
-      .filter((q) => q.eq(q.field("shareId"), args.shareId))
-      .collect();
-    return trip[0];
+      .withIndex("by_shareId", (q) => q.eq("shareId", args.shareId))
+      .unique();
+    return trip;
   },
 });

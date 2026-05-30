@@ -54,5 +54,7 @@ export default defineSchema({
         }),
       ),
     }),
-  }).index("by_email", ["userEmail"]),
+  })
+    .index("by_email", ["userEmail"])
+    .index("by_shareId", ["shareId"]),
 });
