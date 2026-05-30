@@ -73,12 +73,10 @@ export const getTripById = query({
     }
     const trip = await ctx.db.get(args.tripId);
     if (!trip) {
-      throw new Error("Trip not found");
+      return null;
     }
     if (trip.userEmail !== email) {
-      throw new Error(
-        "Unauthorized: You do not have permission to delete this trip",
-      );
+      return null;
     }
     return trip;
   },
