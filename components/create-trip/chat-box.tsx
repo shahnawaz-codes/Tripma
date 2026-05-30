@@ -47,7 +47,9 @@ export const ChatBox = ({
   const [userInput, setUserInput] = useState<string>("");
   const [tripGenerated, setTripGenerated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [generationError, setGenerationError] = useState<"limit" | "failed" | null>(null);
+  const [generationError, setGenerationError] = useState<
+    "limit" | "failed" | null
+  >(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   ///------ auto scroll feat
@@ -72,21 +74,12 @@ export const ChatBox = ({
       });
       if (res.status == 200) {
         const tripData = res?.data?.trip_plan || res?.data;
-        const hotelWithImage = await generateImgForHotels(tripData?.hotels);
-        const itineraryWithImage = await generateImgForactivities(
-          tripData?.itinerary,
-        );
-        const tripPlan = {
-          ...tripData,
-          hotels: hotelWithImage,
-          itinerary: itineraryWithImage,
-        };
         // unique id to make unique share url
         const shareId =
           slugify(tripData.destination, { lower: true }) + "-" + nanoid(5);
         // save to db
         const id = await saveTripMutation({
-          tripPlan: tripPlan,
+          tripPlan: tripData,
           shareId: shareId,
         });
         console.log("saved trip with id:", id);
@@ -122,8 +115,7 @@ export const ChatBox = ({
           ...prev,
           {
             role: "assistant",
-            content:
-              "Sorry, an unexpected error occurred. Please try again.",
+            content: "Sorry, an unexpected error occurred. Please try again.",
           },
         ]);
       }
