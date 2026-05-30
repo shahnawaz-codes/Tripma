@@ -47,6 +47,7 @@ export const ChatBox = ({
   const [userInput, setUserInput] = useState<string>("");
   const [tripGenerated, setTripGenerated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [generationError, setGenerationError] = useState<"limit" | "failed" | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   ///------ auto scroll feat
@@ -65,6 +66,7 @@ export const ChatBox = ({
     try {
       setIsGeneratingPlan(true);
       setTripGenerated(true);
+      setGenerationError(null);
       const res = await axios.post("/api/generate-trip", {
         message: messages,
       });
@@ -79,7 +81,7 @@ export const ChatBox = ({
           hotels: hotelWithImage,
           itinerary: itineraryWithImage,
         };
-
+        // unique id to make unique share url
         const shareId =
           slugify(tripData.destination, { lower: true }) + "-" + nanoid(5);
         // save to db
@@ -93,6 +95,7 @@ export const ChatBox = ({
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 429) {
+          setGenerationError("limit");
           setMessages((prev) => [
             ...prev,
             {
@@ -102,7 +105,27 @@ export const ChatBox = ({
               ui: "limit",
             },
           ]);
+        } else {
+          setGenerationError("failed");
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content:
+                "Sorry, I encountered an error while generating your travel plan. The AI models failed to return a valid plan. Please try again.",
+            },
+          ]);
         }
+      } else {
+        setGenerationError("failed");
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              "Sorry, an unexpected error occurred. Please try again.",
+          },
+        ]);
       }
       console.log("something wrong while generating trip", error);
     } finally {
@@ -151,6 +174,7 @@ export const ChatBox = ({
     tripId,
     generateFinalTripPlan,
     tripGenerated,
+    generationError,
   };
 
   return (
