@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { auth } from "@clerk/nextjs/server";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -15,9 +16,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const data = await fetchQuery(api.trips.getTripById, {
-      tripId: id as Id<"trips">,
-    });
+    const { getToken } = await auth();
+    const token = (await getToken({ template: "convex" })) ?? undefined;
+    const data = await fetchQuery(
+      api.trips.getTripById,
+      {
+        tripId: id as Id<"trips">,
+      },
+      { token },
+    );
     if (data && data.tripPlan) {
       const destination = data.tripPlan.destination || "Trip Details";
       const duration = data.tripPlan.duration || "";
@@ -33,10 +40,15 @@ export async function generateMetadata({
 
   return {
     title: "Trip Details",
-    description: "View your personalized AI travel itinerary and interactive map details.",
+    description:
+      "View your personalized AI travel itinerary and interactive map details.",
   };
 }
 
-export default function TripLayout({ children }: { children: React.ReactNode }) {
+export default function TripLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <>{children}</>;
 }
