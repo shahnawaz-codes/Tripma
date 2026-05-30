@@ -4,6 +4,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { fetchQuery } from "convex/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: NextRequest) {
   let browser;
@@ -14,9 +15,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing tripId" }, { status: 400 });
     }
 
-    const trip = await fetchQuery(api.trips.getTripById, {
-      tripId: tripId as Id<"trips">,
-    });
+    const { getToken } = await auth();
+    const token = (await getToken({ template: "convex" })) ?? undefined;
+    const trip = await fetchQuery(
+      api.trips.getTripById,
+      {
+        tripId: tripId as Id<"trips">,
+      },
+      { token },
+    );
     if (!trip || !trip.tripPlan) {
       return NextResponse.json({ error: "Trip not found" }, { status: 404 });
     }
