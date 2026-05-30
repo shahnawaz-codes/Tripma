@@ -1,7 +1,6 @@
 "use client";
 import { Calendar, Wallet, Users, Download, Share } from "lucide-react";
 import { TripPlan } from "@/types/trip";
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 
@@ -16,13 +15,14 @@ export function PremiumHeader({
 }) {
   const originName = trip.origin.split(",")[0];
   const destName = trip.destination.split("(")[0].trim();
-  const params = useParams();
   const [isExporting, setIsExporting] = useState<boolean>(false);
   /**
    * window.location.origin -> returns actual orgin of application -> domain-hostname-port
    */
-  const shareUrl = `${window.location.origin}/trip/${shareId}`;
-
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/trip/${shareId}`
+      : "";
   const handleShare = async () => {
     if (navigator.share) {
       await navigator.share({
