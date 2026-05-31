@@ -90,18 +90,17 @@ export async function POST(req: Request) {
     const decision = await aj.protect(req, {
       userId: userId || " ",
     });
-    if (
-      decision.reason?.isRateLimit() &&
-      decision.reason.remaining === 0 &&
-      !hasPremiumAccess
-    ) {
-      return NextResponse.json(
-        {
-          error: "No Free Credit Remaining",
-          limitReached: true,
-        },
-        { status: 429 },
-      );
+    if (decision.reason.isRateLimit()) {
+      console.log("remain", decision.reason.remaining);
+      if (decision.reason.remaining === 0 && !hasPremiumAccess) {
+        return NextResponse.json(
+          {
+            error: "No Free Credit Remaining",
+            limitReached: true,
+          },
+          { status: 429 },
+        );
+      }
     }
 
     // fix msg
@@ -117,7 +116,6 @@ export async function POST(req: Request) {
       content:
         "Based on all the details collected in our conversation history above, please generate the complete travel plan now following the requested JSON schema. Do not leave the hotels or itinerary arrays empty; populate them with realistic, detailed information matching the destination, budget, duration, group size, and origin.",
     });
-
 
     const models = [
       "google/gemini-3-flash-preview",
@@ -171,8 +169,6 @@ export async function POST(req: Request) {
           content = content.replace(/<\/?tool_call>/gi, "");
           content = content.replace(/<\/?\w+[^>]*>/g, ""); // strip other stray HTML/XML-like tags
 
-
-
           // Extract JSON object using regex to handle prepended/appended text
           const jsonMatch = content.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
@@ -218,7 +214,9 @@ export async function POST(req: Request) {
     }
 
     if (!success) {
-      console.error("All models in the fallback chain failed to generate a valid trip plan.");
+      console.error(
+        "All models in the fallback chain failed to generate a valid trip plan.",
+      );
       return NextResponse.json(
         data || { error: "All models in fallback chain failed" },
         { status: data?.error?.code || 500 },
