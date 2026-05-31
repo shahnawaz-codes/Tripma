@@ -1,5 +1,11 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
+import { internal } from "./_generated/api";
 
 export const saveNewTrip = mutation({
   args: {
@@ -17,12 +23,14 @@ export const saveNewTrip = mutation({
         "Email claim missing in JWT token. Please configure the Clerk JWT Template for Convex.",
       );
     }
-
     const tripId = await ctx.db.insert("trips", {
       tripPlan: args.tripPlan,
       userEmail: email,
       shareId: args.shareId,
+      imagStatus: "pending",
     });
+    // schedule background job -> this runs in bg after trip created. after created it pushed real-time to the client due to useQuery hook
+    await ctx.scheduler.runAfter(0, internal.imags.genImage, { tripId });
     return tripId;
   },
 });
@@ -127,5 +135,35 @@ export const shareTrip = query({
       .withIndex("by_shareId", (q) => q.eq("shareId", args.shareId))
       .unique();
     return trip;
+  },
+});
+
+export const getTripRaw = internalQuery({
+  args: { tripId: v.id("trips") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.tripId);
+  },
+});
+
+export const updateTripImages = internalMutation({
+  args: {
+    tripId: v.id("trips"),
+    hotelWithImage: v.array(v.any()),
+    itineraryWithImage: v.array(v.any()),
+  },
+  handler: async (ctx, args) => {
+    const { tripId, hotelWithImage, itineraryWithImage } = args;
+    const trip = await ctx.db.get(tripId);
+    if (!trip) {
+      throw new Error(`Trip with ID ${tripId} not found`);
+    }
+    await ctx.db.patch("trips", tripId, {
+      imagStatus: "completed",
+      tripPlan: {
+        ...trip.tripPlan,
+        hotels: hotelWithImage,
+        itinerary: itineraryWithImage,
+      },
+    });
   },
 });
