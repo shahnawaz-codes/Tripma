@@ -11,10 +11,12 @@ export default defineSchema({
   trips: defineTable({
     userEmail: v.string(),
     shareId: v.optional(v.string()),
-    imagStatus: v.union(
-      v.literal("pending"),
-      v.literal("completed"),
-      v.literal("failed"),
+    imagStatus: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("completed"),
+        v.literal("failed"),
+      ),
     ),
     tripPlan: v.object({
       destination: v.string(),
