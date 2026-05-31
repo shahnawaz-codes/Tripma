@@ -29,7 +29,7 @@ export default defineSchema({
           hotel_name: v.string(),
           hotel_address: v.string(),
           price_per_night: v.string(),
-          hotel_image_url: v.string(),
+          hotel_image_url: v.optional(v.string()),
           geo_coordinates: v.object({
             latitude: v.number(),
             longitude: v.number(),
@@ -47,7 +47,7 @@ export default defineSchema({
             v.object({
               place_name: v.string(),
               place_details: v.string(),
-              place_image_url: v.string(),
+              place_image_url: v.optional(v.string()),
               geo_coordinates: v.object({
                 latitude: v.number(),
                 longitude: v.number(),
