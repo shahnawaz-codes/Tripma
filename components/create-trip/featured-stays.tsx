@@ -38,6 +38,7 @@ export function FeaturedStays({
         </div>
       ) : (
         <Image
+          unoptimized
           src={
             hotel.hotel_image_url ||
             "https://placehold.co/600x400.png?text=Image+Unavailable"
