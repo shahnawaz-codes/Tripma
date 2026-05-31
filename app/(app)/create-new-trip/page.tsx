@@ -51,9 +51,11 @@ const CreateTrip = () => {
   return (
     <div className="w-full h-[calc(100vh-70px)] overflow-hidden flex relative">
       {/* chat box */}
-      <div className={`w-full lg:w-[580px] xl:w-[620px] shrink-0 h-full bg-white border-r border-neutral-200 dark:border-neutral-800 ${
-        showPreviewOnMobile ? "hidden lg:block" : "block"
-      }`}>
+      <div
+        className={`w-full lg:w-[580px] xl:w-[620px] shrink-0 h-full bg-white border-r border-neutral-200 dark:border-neutral-800 ${
+          showPreviewOnMobile ? "hidden lg:block" : "block"
+        }`}
+      >
         <ChatBox
           setIsGeneratingPlan={setIsGeneratingPlan}
           isGeneratingPlan={isGeneratingPlan}
@@ -63,9 +65,11 @@ const CreateTrip = () => {
       </div>
 
       {/* display map and area place  */}
-      <div className={`flex-1 bg-white dark:bg-neutral-950 overflow-hidden h-full relative ${
-        showPreviewOnMobile ? "block" : "hidden lg:block"
-      }`}>
+      <div
+        className={`flex-1 bg-white dark:bg-neutral-950 overflow-hidden h-full relative ${
+          showPreviewOnMobile ? "block" : "hidden lg:block"
+        }`}
+      >
         {isGeneratingPlan ? (
           <TripStatusDisplay key="generating" status="generating" />
         ) : data ? (
@@ -76,6 +80,7 @@ const CreateTrip = () => {
               tripId={data._id}
               trip_data={data.tripPlan}
               shareId={data.shareId as string}
+              imageStatus={data.imagStatus as string}
             />
           )
         ) : (

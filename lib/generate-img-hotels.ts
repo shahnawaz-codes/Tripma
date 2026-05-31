@@ -1,9 +1,10 @@
-import { Hotel } from "@/types/trip";
-import { fetchImage } from "@/lib/fetch-image";
+import { Hotel } from "../types/trip";
+import { fetchImage } from "./fetch-image";
 
 export const generateImgForHotels = async (hotels: Hotel[]) => {
-  return await Promise.all(
-    hotels?.map(async (hotel) => {
+  if (!hotels) return [];
+  const results = await Promise.allSettled(
+    hotels.map(async (hotel) => {
       const placeName = hotel.hotel_name + " " + hotel.hotel_address;
       const imageUrl = await fetchImage(placeName, hotel.geo_coordinates);
       return {
@@ -12,4 +13,12 @@ export const generateImgForHotels = async (hotels: Hotel[]) => {
       };
     }),
   );
+
+  return results.map((result, idx) => {
+    if (result.status === "fulfilled") {
+      return result.value;
+    } else {
+      return hotels[idx];
+    }
+  });
 };

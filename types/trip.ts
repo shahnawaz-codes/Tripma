@@ -11,7 +11,7 @@ export type Hotel = {
   hotel_name: string;
   hotel_address: string;
   price_per_night: string;
-  hotel_image_url: string;
+  hotel_image_url?: string;
   geo_coordinates: GeoCoordinates;
   rating: number;
   description: string;
@@ -30,7 +30,7 @@ export type Itinerary = {
 export type Activities = {
   place_name: string;
   place_details: string;
-  place_image_url: string;
+  place_image_url?: string;
   geo_coordinates: GeoCoordinates;
   place_address: string;
   ticket_pricing: string;

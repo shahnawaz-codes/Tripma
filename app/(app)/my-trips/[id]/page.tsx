@@ -87,6 +87,7 @@ export default function TripId() {
           tripId={data._id}
           trip_data={data.tripPlan}
           shareId={data.shareId as string}
+          imageStatus={data.imagStatus as string}
         />
       </div>
 

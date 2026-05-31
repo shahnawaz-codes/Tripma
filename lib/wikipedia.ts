@@ -14,7 +14,7 @@ export const getWikipediaImage = async (
     let url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(
       placeName,
     )}&gsrlimit=1&prop=pageimages&pithumbsize=600&format=json&origin=*`;
-    
+
     let res = await axios.get(url, {
       headers: {
         "User-Agent": "TravelPlannerBot/1.0 (_; shahnawaz.codes@email.com)",

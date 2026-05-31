@@ -14,6 +14,7 @@ export const saveNewTrip = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
+    // validate auth
     if (!identity) {
       throw new Error("Unauthorized: Please sign in to save trips");
     }
@@ -23,6 +24,7 @@ export const saveNewTrip = mutation({
         "Email claim missing in JWT token. Please configure the Clerk JWT Template for Convex.",
       );
     }
+    // save Trip without image
     const tripId = await ctx.db.insert("trips", {
       tripPlan: args.tripPlan,
       userEmail: email,
@@ -31,6 +33,7 @@ export const saveNewTrip = mutation({
     });
     // schedule background job -> this runs in bg after trip created. after created it pushed real-time to the client due to useQuery hook
     await ctx.scheduler.runAfter(0, internal.imags.genImage, { tripId });
+    
     return tripId;
   },
 });

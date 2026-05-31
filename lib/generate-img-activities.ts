@@ -1,11 +1,12 @@
-import { Itinerary } from "@/types/trip";
-import { fetchImage } from "@/lib/fetch-image";
+import { Itinerary } from "../types/trip";
+import { fetchImage } from "./fetch-image";
 
 export const generateImgForactivities = async (itinerary: Itinerary[]) => {
-  return await Promise.all(
-    itinerary?.map(async (it) => {
-      const activityWithImages = await Promise.all(
-        it.activities?.map(async (activity) => {
+  if (!itinerary) return [];
+  const results = await Promise.allSettled(
+    itinerary.map(async (day) => {
+      const activitiesResults = await Promise.allSettled(
+        day.activities?.map(async (activity) => {
           const placeName = activity.place_name + " " + activity.place_address;
           const imageUrl = await fetchImage(
             placeName,
@@ -15,12 +16,29 @@ export const generateImgForactivities = async (itinerary: Itinerary[]) => {
             ...activity,
             place_image_url: imageUrl,
           };
-        }),
+        }) || [],
       );
+
+      const activities = activitiesResults.map((result, idx) => {
+        if (result.status === "fulfilled") {
+          return result.value;
+        } else {
+          return day.activities[idx];
+        }
+      });
+
       return {
-        ...it,
-        activities: activityWithImages,
+        ...day,
+        activities,
       };
     }),
   );
+
+  return results.map((result, idx) => {
+    if (result.status === "fulfilled") {
+      return result.value;
+    } else {
+      return itinerary[idx];
+    }
+  });
 };

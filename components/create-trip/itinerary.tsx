@@ -6,11 +6,13 @@ import { DailyItinerary } from "./daily-itinerary";
 import { Id } from "@/convex/_generated/dataModel";
 
 export function Itinerary({
+  imageStatus = "completed",
   trip_data,
   shareId,
   tripId,
 }: {
   trip_data: TripPlan;
+  imageStatus?: string;
   shareId: string;
   tripId: Id<"trips">;
 }) {
@@ -32,11 +34,20 @@ export function Itinerary({
         </div>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-6">
           {trip.hotels.map((hotel, idx) => (
-            <FeaturedStays hotel={hotel} openMap={openMap} key={idx} />
+            <FeaturedStays
+              hotel={hotel}
+              openMap={openMap}
+              key={idx}
+              imageStatus={imageStatus}
+            />
           ))}
         </div>
       </section>
-      <DailyItinerary itinerary={trip.itinerary} openMap={openMap} />
+      <DailyItinerary
+        itinerary={trip.itinerary}
+        openMap={openMap}
+        imageStatus={imageStatus}
+      />
     </div>
   );
 }

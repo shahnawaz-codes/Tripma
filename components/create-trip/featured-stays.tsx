@@ -1,17 +1,23 @@
 "use client";
 
-import { MapPin, Star, Wallet, Map } from "lucide-react";
+import { MapPin, Star, Wallet, Map, ImageOff } from "lucide-react";
 import { Hotel } from "@/types/trip";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FeaturedStaysProps {
   hotel: Hotel;
   openMap: (lat: number, lng: number, placeId: string) => void;
+  imageStatus: string;
 }
 
-export function FeaturedStays({ hotel, openMap }: FeaturedStaysProps) {
+export function FeaturedStays({
+  hotel,
+  openMap,
+  imageStatus,
+}: FeaturedStaysProps) {
   return (
     <div
       className="group relative h-95 rounded-3xl overflow-hidden cursor-pointer"
@@ -23,20 +29,29 @@ export function FeaturedStays({ hotel, openMap }: FeaturedStaysProps) {
         );
       }}
     >
-      <Image
-        src={
-          hotel.hotel_image_url ||
-          "https://placehold.co/600x400.png?text=Image+Unavailable"
-        }
-        fill
-        alt={hotel.hotel_name}
-        sizes="100%"
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        onError={(e) => {
-          (e.target as HTMLImageElement).src =
-            "https:///600x800?text=Image+Unavailable";
-        }}
-      />
+      {imageStatus === "pending" ? (
+        <Skeleton className="absolute inset-0 w-full h-full rounded-3xl" />
+      ) : imageStatus === "failed" ? (
+        <div className="absolute inset-0 w-full h-full bg-neutral-100 dark:bg-neutral-900/50 flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 gap-2 pb-24">
+          <ImageOff className="w-10 h-10 stroke-[1.5]" />
+          <span className="text-xs font-semibold uppercase tracking-wider">No Image</span>
+        </div>
+      ) : (
+        <Image
+          src={
+            hotel.hotel_image_url ||
+            "https://placehold.co/600x400.png?text=Image+Unavailable"
+          }
+          fill
+          alt={hotel.hotel_name}
+          sizes="100%"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              "https://placehold.co/600x400.png?text=Image+Unavailable";
+          }}
+        />
+      )}
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 

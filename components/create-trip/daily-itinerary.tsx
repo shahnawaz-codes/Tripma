@@ -8,9 +8,14 @@ import { ActivityCard } from "./activity-card";
 interface DailyItineraryProps {
   itinerary: Itinerary[];
   openMap: (lat: number, lng: number, placeId: string) => void;
+  imageStatus: string;
 }
 
-export function DailyItinerary({ itinerary, openMap }: DailyItineraryProps) {
+export function DailyItinerary({
+  itinerary,
+  openMap,
+  imageStatus,
+}: DailyItineraryProps) {
   const itineraryTimelineData = itinerary.map((day) => ({
     title: `Day ${day.day}`,
     content: (
@@ -30,6 +35,7 @@ export function DailyItinerary({ itinerary, openMap }: DailyItineraryProps) {
             <ActivityCard
               activity={activity}
               openMap={openMap}
+              imageStatus={imageStatus}
               key={idx}
               index={idx}
             />
