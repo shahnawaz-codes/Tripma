@@ -3,6 +3,7 @@ import { Calendar, Wallet, Users, Download, Share, Check } from "lucide-react";
 import { TripPlan } from "@/types/trip";
 import { useEffect, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
+import { PDF_template } from "@/components/pdf/pdf-template";
 
 export function PremiumHeader({
   trip,
@@ -53,26 +54,58 @@ export function PremiumHeader({
     `Check my trip: ${shareUrl}`,
   )}`;
 
-  const handleExportPdf = async () => {
+  const handleExportPdf = () => {
     try {
       setIsExporting(true);
-      console.log("tripid", tripId);
-      const res = await fetch("/api/export-pdf", {
-        method: "POST",
-        body: JSON.stringify({
-          tripId: tripId,
-        }),
-      });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `trip-${trip.destination}.pdf`;
-        a.click();
+      const htmlContent = PDF_template(trip);
+
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+
+        const handlePrint = () => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+          }, 1000);
+        };
+
+        const images = doc.querySelectorAll("img");
+        let loadedImages = 0;
+        if (images.length === 0) {
+          handlePrint();
+        } else {
+          images.forEach((img) => {
+            if (img.complete) {
+              loadedImages++;
+              if (loadedImages === images.length) {
+                handlePrint();
+              }
+            } else {
+              img.onload = img.onerror = () => {
+                loadedImages++;
+                if (loadedImages === images.length) {
+                  handlePrint();
+                }
+              };
+            }
+          });
+        }
       }
     } catch (error) {
-      console.log("something goes wrong", error);
+      console.error("something goes wrong", error);
     } finally {
       setIsExporting(false);
     }
