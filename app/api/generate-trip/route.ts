@@ -73,7 +73,7 @@ export async function POST(req: Request) {
         status: false,
       });
     }
-    // rate limit
+    // ----------rate limit
     const { userId, has } = await auth();
     if (!userId) {
       return NextResponse.json(
