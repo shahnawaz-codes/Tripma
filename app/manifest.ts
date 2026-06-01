@@ -3,7 +3,7 @@ import { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "AI Trip Planner",
-    short_name: "AITrip",
+    short_name: "Tripma",
     description: "Your personal AI travel expert. Plan your dream trip in seconds with custom, tailored travel itineraries.",
     start_url: "/",
     display: "standalone",
