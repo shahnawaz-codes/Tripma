@@ -10,7 +10,19 @@ export const aj = arcjet({
       characteristics: ["userId"], // track requests by a custom user ID
       window: "1d",
       max: 2,
-      
     }),
   ],
 });
+
+export const checkCreditsAj = arcjet({
+  key: process.env.ARCJET_KEY!,
+  rules: [
+    fixedWindow({
+      mode: "DRY_RUN", // dry run mode to inspect credits without decrementing/blocking
+      characteristics: ["userId"],
+      window: "1d",
+      max: 2,
+    }),
+  ],
+});
+
