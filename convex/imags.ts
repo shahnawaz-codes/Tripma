@@ -27,6 +27,11 @@ export const genImage = internalAction({
         hotelWithImage,
         itineraryWithImage,
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error generating trip images:", error);
+      await ctx.runMutation(internal.trips.markImageGenerationFailed, {
+        tripId: args.tripId,
+      });
+    }
   },
 });
