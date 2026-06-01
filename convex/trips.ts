@@ -170,3 +170,19 @@ export const updateTripImages = internalMutation({
     });
   },
 });
+
+export const markImageGenerationFailed = internalMutation({
+  args: {
+    tripId: v.id("trips"),
+  },
+  handler: async (ctx, args) => {
+    const { tripId } = args;
+    const trip = await ctx.db.get(tripId);
+    if (!trip) {
+      throw new Error(`Trip with ID ${tripId} not found`);
+    }
+    await ctx.db.patch("trips", tripId, {
+      imagStatus: "failed",
+    });
+  },
+});
