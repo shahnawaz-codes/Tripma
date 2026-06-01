@@ -43,12 +43,24 @@ export async function POST(req: NextRequest) {
       // and load the Chromium binary pack from GitHub at runtime to stay within function size limits
       const puppeteerCore = await import("puppeteer-core");
       const chromium = (await import("@sparticuz/chromium-min")).default;
+      
+      const executablePath = await chromium.executablePath(
+        "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
+      );
+
+      // Prepend the Chromium directory to LD_LIBRARY_PATH so the OS can load shared libraries like libnss3.so
+      const path = await import("path");
+      const execDir = path.dirname(executablePath);
+      if (process.env.LD_LIBRARY_PATH) {
+        process.env.LD_LIBRARY_PATH = `${execDir}:${process.env.LD_LIBRARY_PATH}`;
+      } else {
+        process.env.LD_LIBRARY_PATH = execDir;
+      }
+
       browser = await puppeteerCore.default.launch({
         args: chromium.args,
         defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(
-          "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
-        ),
+        executablePath: executablePath,
         headless: chromium.headless,
       });
     }
