@@ -2,6 +2,12 @@
 
 A high-performance, interactive **AI-powered Trip Planner** built using Next.js, Convex, Clerk, and Arcjet. This application guides users through a chat-based flow using **Generative UI** to collect travel preferences, dynamically generating highly detailed daily itineraries, curated hotel stays, and interactive mapping coordinates.
 
+## 📸 Screenshots
+
+| Chat Flow (Generative UI) | Trip Dashboard (3D Globe) |
+| :---: | :---: |
+| ![Chat Flow](public/image/screenshot/chat.png) | ![Trip Dashboard](public/image/screenshot/trip.png) |
+
 ---
 
 ## 🚀 Technical Highlights (Recruiter's Quick-View)
