@@ -7,8 +7,10 @@ import ConvexClientProvider from "./ConvexClientProvider";
 const outfit = Outfit({
   subsets: ["latin"],
 });
-
 export const metadata: Metadata = {
+  verification: {
+    google: "neq77u5LhXPUrW",
+  },
   title: {
     default: "AI Trip Planner - Plan Your Dream Trip in Seconds",
     template: "%s | AI Trip Planner",
