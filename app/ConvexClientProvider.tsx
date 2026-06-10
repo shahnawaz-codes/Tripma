@@ -20,7 +20,7 @@ export default function ConvexClientProvider({
   useEffect(() => {
     import("@plausible-analytics/tracker").then(({ init }) => {
       init({
-        domain: "https://tripma-ten.vercel.app",
+        domain: "tripma-ten.vercel.app",
         autoCapturePageviews: true,
       });
     });
